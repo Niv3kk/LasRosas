@@ -1,0 +1,40 @@
+/* raíz del layout */
+.dash-root{
+  min-height: 100vh;
+  background: #e9ebed;
+}
+
+/* fila horizontal: sidebar + contenido */
+.dash-body{
+  display: grid;
+  grid-template-columns: 260px 1fr; /* 260px de sidebar, el resto contenido */
+  min-height: calc(100vh - 72px);   /* 72px: alto del TopBar */
+}
+
+/* contenido a la derecha */
+.dash-content{
+  padding: 24px;
+  overflow: auto;
+  min-width: 0; /* evita que el grid “empuje” y pase abajo */
+}
+
+/* si quieres que el sidebar quede fijo al hacer scroll del contenido */
+.sidebar{
+  height: calc(100vh - 72px);
+  position: sticky;
+  top: 72px;
+  overflow: auto;
+  border-right: 1px solid #e3e3e3;
+  background: #ecf0f1;
+}
+
+/* barra superior (si no la tienes ya) */
+.topbar{
+  height: 72px;
+  background: #c9434d;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  box-shadow: 0 2px 6px rgba(0,0,0,.1);
+}
