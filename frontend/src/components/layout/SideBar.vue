@@ -47,10 +47,13 @@
 </template>
 
 <style scoped>
-.sidebar{
-  width: 260px; background: #ecf0f1; height: calc(100vh - 72px);
-  position: sticky; top: 72px; display: flex; flex-direction: column;
+.sidebar {
+  width: 260px;
+  background: #ecf0f1;
+  display: flex;
+  flex-direction: column;
   border-right: 1px solid #e3e3e3;
+  /* Se eliminó height y position: sticky */
 }
 .menu{ padding: 16px 10px; display: grid; gap: 6px; }
 .item{
