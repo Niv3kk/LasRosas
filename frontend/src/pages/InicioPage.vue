@@ -17,8 +17,8 @@
     </div>
 
     <div class="card card-soft mb-3 p-4" v-for="(p, i) in pedidosFiltrados" :key="i">
-      <div class="row g-2 align-items-center">
-        <div class="col-md-7">
+      <div class="row g-0 align-items-center">
+        <div class="col-md-3">
           <div class="fw-semibold">Pedido de: {{ p.cliente }}</div>
           <div>Ubicación: {{ p.ubicacion }}</div>
           <div class="mt-2 text-muted small">{{ p.fecha }}</div>
@@ -39,7 +39,7 @@
             </template>
           </div>
         </div>
-        <div class="col-md-2 text-center">
+        <div class="col-md-6 text-center">
           <button class="btn btn-green">
             Revisar
             <img src="@/assets/Revisar.png" alt="Revisar pedido">
@@ -114,6 +114,7 @@ const pedidosFiltrados = computed(() => {
   cursor: pointer; /* Indica que se puede hacer clic */
   border-bottom: 3px solid transparent; /* Borde invisible por defecto */
   transition: border-color 0.3s;
+  color: black;
 }
 
 /* Estilo para el título que está activo */
@@ -133,7 +134,7 @@ const pedidosFiltrados = computed(() => {
   color: white;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
   padding: 5px 80px;
 }
 
@@ -145,4 +146,6 @@ img {
   border-color: #24a05c;
   color: white;
 }
+
+
 </style>

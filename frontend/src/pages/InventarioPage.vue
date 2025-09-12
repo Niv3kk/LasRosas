@@ -29,7 +29,7 @@
       <div class="actions-container">
         <button class="btn btn-edit">
           <span>Editar</span>
-          <i class="bi bi-pencil-square"></i>
+          <img src="@/assets/Edit.png" alt="editar">
         </button>
       </div>
     </div>
@@ -67,7 +67,7 @@ const inventario = ref([
 
 .main-title {
   text-align: center;
-  color: #333;
+  color: #000000;
   margin-bottom: 2rem;
   /* Hacemos que el título no se encoja */
   flex-shrink: 0;
@@ -119,7 +119,7 @@ const inventario = ref([
 
 .inventory-table th {
   font-weight: 600;
-  color: #555;
+  color: #000000;
   border-bottom: 2px solid #ddd;
 }
 
@@ -165,5 +165,11 @@ const inventario = ref([
 }
 .btn-edit {
   background-color: #00BCD4; /* Cian */
+}
+.btn-edit:hover{
+  background-color: #00BCD4;
+}
+.btn-edit img{
+  height: 23px;
 }
 </style>

@@ -35,12 +35,12 @@
 
         <div class="card-actions">
           <button class="btn btn-edit">
-            <i class="bi bi-pencil-square"></i>
             <span>Editar</span>
+            <img src="@/assets/Edit.png" alt="editar">
           </button>
           <button class="btn btn-delete">
-            <i class="bi bi-trash"></i>
             <span>Borrar</span>
+            <img src="@/assets/Delete.png" alt="eliminar">
           </button>
         </div>
       </div>
@@ -94,7 +94,7 @@ const historiales = ref([
 /* Título */
 .main-title {
   text-align: center;
-  color: #333;
+  color: #000000;
   margin-bottom: 2rem;
   font-weight: 600;
 }
@@ -217,6 +217,12 @@ const historiales = ref([
 }
 .btn-delete:hover{
     background-color: #E53935;
+}
+.btn-edit img{
+  height: 23px;
+}
+.btn-delete img{
+  height: 23px;
 }
 
 /* Clases de Bootstrap que podrías necesitar si no lo tienes globalmente */
