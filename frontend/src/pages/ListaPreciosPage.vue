@@ -37,17 +37,28 @@
       </table>
 
       <div class="actions-container">
-        <button class="btn btn-edit">
+        <button class="btn btn-edit" @click="abrirModal">
           <span>Editar</span>
           <img src="@/assets/Edit.png" alt="editar">
         </button>
       </div>
     </div>
+    <EditarPreciosModal
+      v-if="modalVisible"
+      :lista="datosTablaActiva"
+      @cerrar="cerrarModal"
+      @guardar="guardarCambios" 
+    />
   </main>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue';
+// AÑADE ESTAS LÍNEAS DEBAJO DE "import { ref, computed } from 'vue';"
+import EditarPreciosModal from '@/components/EditarPreciosModal.vue';
+
+// Nuevas variables para controlar el modal
+const modalVisible = ref(false);
 
 // Variable para saber qué vista está activa: 'precios' o 'danos'
 const vistaActiva = ref('precios');
@@ -84,6 +95,25 @@ const datosTablaActiva = computed(() => {
     return listaPreciosDanos.value;
   }
 });
+
+// AÑADE ESTAS FUNCIONES AL FINAL DE TU SCRIPT
+const abrirModal = () => {
+  modalVisible.value = true;
+};
+
+const cerrarModal = () => {
+  modalVisible.value = false;
+};
+
+const guardarCambios = (listaEditada) => {
+  if (vistaActiva.value === 'precios') {
+    listaPrecios.value = listaEditada;
+  } else {
+    listaPreciosDanos.value = listaEditada;
+  }
+  cerrarModal();
+
+};
 </script>
 
 <style scoped>
