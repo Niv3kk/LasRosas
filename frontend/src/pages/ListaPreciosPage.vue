@@ -231,4 +231,11 @@ const guardarCambios = (listaEditada) => {
 .btn-edit img{
   height: 23px;
 }
+/* Para los botones de "Editar" */
+.btn-edit:active,
+.btn-edit:focus {
+  background-color: #00BCD4 !important; 
+  border-color: #00BCD4 !important;
+  box-shadow: none !important;
+}
 </style>

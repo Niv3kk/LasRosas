@@ -33,7 +33,7 @@ const router = createRouter({
       children: [
         { path: '', redirect: { name: 'inicio' } }, // /app → /app/inicio
         { path: 'inicio', name: 'inicio', component: () => import('@/pages/InicioPage.vue') },
-        { path: 'historial-pedidos', name: 'historial-pedidos', component: () => import('@/pages/HistorialPedidosPage.vue') },
+        { path: 'historial-pedidos', name: 'historial-pedidos', component: () => import('@/pages/HistorialAquileresPage.vue') },
         { path: 'inventario', name: 'inventario', component: () => import('@/pages/InventarioPage.vue') },
         { path: 'lista-precios', name: 'lista-precios', component: () => import('@/pages/ListaPreciosPage.vue') },
         { path: 'reportes', name: 'reportes', component: () => import('@/pages/ReportesPage.vue') },

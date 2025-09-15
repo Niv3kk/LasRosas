@@ -102,4 +102,12 @@ const actualizarTotal = (item) => {
 .btn-save:hover { opacity: 0.85; background-color: #2196F3;}
 .fw-bold { font-weight: 700; }
 .text-right { text-align: right; }
+
+/* Para los botones de "Guardar" */
+.btn-save:active,
+.btn-save:focus {
+  background-color: #2196F3 !important; 
+  border-color: #2196F3 !important;
+  box-shadow: none !important;
+}
 </style>

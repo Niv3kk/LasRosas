@@ -7,7 +7,7 @@
       </RouterLink>
       <RouterLink class="item" to="/app/historial-pedidos">
         <img class="logos" src="@/assets/HistorialPedido.png" alt="HistorialPedidos"/>
-        <span>Historial de pedidos</span>
+        <span>Historial de alquileres</span>
       </RouterLink>
       <RouterLink class="item" to="/app/inventario">
         <img class="logos" src="@/assets/ControlInventario.png" alt="ControlInventario"/>

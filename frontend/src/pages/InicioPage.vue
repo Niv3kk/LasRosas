@@ -55,23 +55,25 @@
       v-if="modalVisible" 
       :pedido="pedidoSeleccionado"
       @cerrar="cerrarModal"
+      @borrar="borrarPedido"
+      @guardar="guardarPedidoEditado"
     />
   </div>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue';
-// ===== Importar el componente del modal (sin cambios) =====
 import DetallePedidoModal from '@/components/DetallePedidoModal.vue';
 
+// --- ESTADO DE LA VISTA ---
 const vistaActiva = ref('pendientes');
 
-// ===== Nuevas variables para controlar el modal (sin cambios) =====
+// --- ESTADO DEL MODAL ---
 const modalVisible = ref(false);
 const pedidoSeleccionado = ref(null);
 
-// ===== Datos de Pedidos Pendientes (sin cambios) =====
-const pedidosPendientes = [
+// --- DATOS DE EJEMPLO ---
+const pedidosPendientes = ref([
   {
     cliente: 'Andrea Garnica',
     ubicacion: 'Urb. Del Valle #12',
@@ -93,10 +95,9 @@ const pedidosPendientes = [
       { cant: 12, item: 'Sobremanteles color celeste', precioUnitario: 10, total: 120 },
     ],
   },
-];
+]);
 
-// ===== ADICIÓN: Ejemplos para Pedidos Por Recoger =====
-const pedidosPorRecoger = [
+const pedidosPorRecoger = ref([
   {
     cliente: 'Maria Lopez',
     ubicacion: 'Calle Lanza #789',
@@ -116,37 +117,14 @@ const pedidosPorRecoger = [
       { cant: 100, item: 'Platos', precioUnitario: 1.5, total: 150 },
     ],
   },
-  {
-    cliente: 'Carlos Soliz',
-    ubicacion: 'Av. América #555',
-    fecha: '13/09/2025',
-    hora: '11:00 AM',
-    pagado: true,
-    celular1: '71717171',
-    celular2: '61616161',
-    numeroPedido: '2347',
-    fechaEntrega: '11/09/2025',
-    fechaRecojo: '13/09/2025',
-    garantia: true,
-    direccion: 'Domicilio particular, cerca del parque Lincoln',
-    granTotal: 525,
-    detalle: [
-      { cant: 2, item: 'Carpas Grandes', precioUnitario: 150, total: 300 },
-      { cant: 75, item: 'Sillas', precioUnitario: 3, total: 225 },
-    ],
-  },
-];
+]);
 
-// ===== Propiedad computada (sin cambios) =====
+// --- LÓGICA DE FILTRADO ---
 const pedidosFiltrados = computed(() => {
-  if (vistaActiva.value === 'pendientes') {
-    return pedidosPendientes;
-  } else {
-    return pedidosPorRecoger;
-  }
+  return vistaActiva.value === 'pendientes' ? pedidosPendientes.value : pedidosPorRecoger.value;
 });
 
-// ===== Funciones para abrir y cerrar el modal (sin cambios) =====
+// --- FUNCIONES DEL MODAL ---
 const abrirModal = (pedido) => {
   pedidoSeleccionado.value = pedido;
   modalVisible.value = true;
@@ -156,8 +134,38 @@ const cerrarModal = () => {
   modalVisible.value = false;
   pedidoSeleccionado.value = null;
 };
-</script>
 
+// --- FUNCIONES PARA BORRAR Y GUARDAR ---
+const borrarPedido = (idPedido) => {
+  if (confirm('¿Estás seguro de que quieres borrar este pedido?')) {
+    if (vistaActiva.value === 'pendientes') {
+      pedidosPendientes.value = pedidosPendientes.value.filter(p => p.numeroPedido !== idPedido);
+    } else {
+      pedidosPorRecoger.value = pedidosPorRecoger.value.filter(p => p.numeroPedido !== idPedido);
+    }
+    cerrarModal();
+  }
+};
+
+const guardarPedidoEditado = (pedidoEditado) => {
+  const actualizarLista = (lista) => {
+    const index = lista.findIndex(p => p.numeroPedido === pedidoEditado.numeroPedido);
+    if (index !== -1) {
+      lista[index] = pedidoEditado;
+    }
+    return lista;
+  };
+
+  if (vistaActiva.value === 'pendientes') {
+    pedidosPendientes.value = actualizarLista(pedidosPendientes.value);
+  } else {
+    pedidosPorRecoger.value = actualizarLista(pedidosPorRecoger.value);
+  }
+  
+  // Cerramos el modal después de guardar
+  cerrarModal();
+};
+</script>
 <style scoped>
 /* Tu CSS se mantiene exactamente igual, no necesita cambios */
 .section-title {
@@ -196,4 +204,13 @@ img {
   border-color: #24a05c;
   color: white;
 }
+/* Para el botón "Revisar" */
+.btn-green:active,
+.btn-green:focus {
+  background-color: #2ABB68 !important; 
+  border-color: #2ABB68 !important;
+  box-shadow: none !important; 
+}
+
+
 </style>

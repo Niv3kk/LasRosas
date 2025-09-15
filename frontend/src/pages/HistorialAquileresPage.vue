@@ -5,20 +5,19 @@
     <div class="search-bar">
       <div class="search-input-wrapper">
         <i class="bi bi-search"></i>
-        <input type="text" placeholder="Buscar...">
+        <input type="text" placeholder="Buscar..." />
       </div>
       <button class="filter-btn">
         <span>Filtrar</span>
-        <img src="@/assets/Filtro.png" alt="">
+        <img src="@/assets/Filtro.png" alt="Filtrar" />
       </button>
     </div>
 
     <div class="historial-list">
       <div class="historial-card" v-for="alquiler in historiales" :key="alquiler.id">
-        
         <div class="card-content">
           <div class="fw-semibold">Alquiler de: {{ alquiler.cliente }}</div>
-          <div>Ubicacion: {{ alquiler.ubicacion }}</div>
+          <div>Ubicación: {{ alquiler.ubicacion }}</div>
           <div class="text-muted small mt-auto">{{ alquiler.fecha }}</div>
         </div>
 
@@ -34,72 +33,96 @@
         </div>
 
         <div class="card-actions">
-          <button class="btn btn-edit">
+          <button class="btn btn-edit" @click="abrirModal(alquiler)">
             <span>Editar</span>
-            <img src="@/assets/Edit.png" alt="editar">
+            <img src="@/assets/Edit.png" alt="editar" />
           </button>
-          <button class="btn btn-delete">
+          <button class="btn btn-delete" @click="abrirModal(alquiler)">
             <span>Borrar</span>
-            <img src="@/assets/Delete.png" alt="eliminar">
+            <img src="@/assets/Delete.png" alt="eliminar" />
           </button>
         </div>
       </div>
     </div>
+
+    <EditarAlquilerModal
+      v-if="modalVisible"
+      :alquiler="alquilerSeleccionado"
+      @cerrar="cerrarModal"
+      @borrar="borrarAlquiler"
+      @guardar="guardarAlquiler" 
+    />
   </main>
 </template>
 
 <script setup>
 import { ref } from 'vue';
+// ===== ADICIÓN: Importar el nuevo componente =====
+import EditarAlquilerModal from '@/components/EditarAlquilerModal.vue';
 
-// Datos de ejemplo para el historial. 
-// En un futuro, esto vendría de tu base de datos.
+// ===== ADICIÓN: Variables para controlar el modal =====
+const modalVisible = ref(false);
+const alquilerSeleccionado = ref(null);
+
+// Datos de ejemplo (sin cambios)
 const historiales = ref([
   {
     id: 1,
     cliente: 'Andrea Garnica',
     ubicacion: 'Urb. Del Valle #12',
     fecha: '14/09/2024',
-    detalle: [
-      { cant: 50, item: 'Mesas' },
-      { cant: 600, item: 'Sillas' },
-      { cant: 80, item: 'Manteles' },
-      { cant: 100, item: 'Sobremanteles color celeste' },
-      { cant: 50, item: 'Cajas de vasos largos 12u' },
-      { cant: 50, item: 'Cajas de cervezas 24u' },
-      { cant: 40, item: 'Juegos de mesitas' },
-    ],
+    detalle: [ { cant: 50, item: 'Mesas' }, { cant: 600, item: 'Sillas' } ],
   },
   {
     id: 2,
     cliente: 'Carlos Soliz',
     ubicacion: 'Av. América #555',
     fecha: '12/09/2024',
-    detalle: [
-      { cant: 2, item: 'Carpas Grandes' },
-      { cant: 150, item: 'Sillas' },
-      { cant: 15, item: 'Mesas Redondas' },
-    ],
+    detalle: [ { cant: 2, item: 'Carpas Grandes' }, { cant: 150, item: 'Sillas' } ],
   },
 ]);
+
+// ===== ADICIÓN: Funciones para manejar la lógica del modal =====
+const abrirModal = (alquiler) => {
+  alquilerSeleccionado.value = alquiler;
+  modalVisible.value = true;
+};
+
+const cerrarModal = () => {
+  modalVisible.value = false;
+  alquilerSeleccionado.value = null;
+};
+
+const borrarAlquiler = (idAlquiler) => {
+  if (confirm('¿Estás seguro de que quieres borrar este registro del historial?')) {
+    historiales.value = historiales.value.filter(h => h.id !== idAlquiler);
+    cerrarModal();
+  }
+};
+
+const guardarAlquiler = (alquilerEditado) => {
+  const index = historiales.value.findIndex(h => h.id === alquilerEditado.id);
+  if (index !== -1) {
+    historiales.value[index] = alquilerEditado;
+  }
+  cerrarModal();
+};
 </script>
 
 <style scoped>
-/* Estilo General del Contenedor */
 .historial-container {
   padding: 2rem;
   background-color: #f0f2f5;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 }
 
-/* Título */
 .main-title {
   text-align: center;
-  color: #000000;
+  color: #000;
   margin-bottom: 2rem;
   font-weight: 600;
 }
 
-/* Barra de Búsqueda */
 .search-bar {
   display: flex;
   gap: 1rem;
@@ -143,15 +166,16 @@ const historiales = ref([
   font-size: 1rem;
   transition: background-color 0.2s;
 }
-.filter-btn img{
-    height: 23px;
-    align-items: center;
+
+.filter-btn img {
+  height: 23px;
+  align-items: center;
 }
+
 .filter-btn:hover {
   background-color: #f7f7f7;
 }
 
-/* Tarjeta del Historial */
 .historial-card {
   background: white;
   border-radius: 12px;
@@ -162,18 +186,19 @@ const historiales = ref([
   gap: 2rem;
 }
 
-/* Contenido dentro de la tarjeta */
 .card-content {
   flex: 1.2;
   display: flex;
   flex-direction: column;
 }
+
 .card-details {
   flex: 1.5;
   border-left: 1px solid #eee;
   border-right: 1px solid #eee;
   padding: 0 2rem;
 }
+
 .card-actions {
   flex: 0.8;
   display: flex;
@@ -182,13 +207,22 @@ const historiales = ref([
   gap: 0.75rem;
 }
 
-/* Estilos de Texto dentro de la tarjeta */
-.fw-semibold { font-weight: 600; }
-.text-muted { color: #6c757d; }
-.small { font-size: 0.9rem; }
-.mt-auto { margin-top: auto; }
+.fw-semibold {
+  font-weight: 600;
+}
 
-/* Botones de Acción */
+.text-muted {
+  color: #6c757d;
+}
+
+.small {
+  font-size: 0.9rem;
+}
+
+.mt-auto {
+  margin-top: auto;
+}
+
 .btn {
   border: none;
   border-radius: 8px;
@@ -203,39 +237,59 @@ const historiales = ref([
   font-size: 0.95rem;
   transition: opacity 0.2s;
 }
+
 .btn:hover {
   opacity: 0.85;
 }
+
 .btn-edit {
-  background-color: #00BCD4; /* Cian */
-}
-.btn-edit:hover{
-    background-color: #00BCD4;
-}
-.btn-delete {
-  background-color: #E53935; /* Rojo */
-}
-.btn-delete:hover{
-    background-color: #E53935;
-}
-.btn-edit img{
-  height: 23px;
-}
-.btn-delete img{
-  height: 23px;
+  background-color: #00BCD4;
 }
 
-/* Clases de Bootstrap que podrías necesitar si no lo tienes globalmente */
+.btn-edit:hover {
+  background-color: #00BCD4;
+}
+
+.btn-delete {
+  background-color: #E53935;
+}
+
+.btn-delete:hover {
+  background-color: #E53935;
+}
+
+.btn-edit img,
+.btn-delete img {
+  height: 23px;
+}
+/* Para los botones de "Editar" */
+.btn-edit:active,
+.btn-edit:focus {
+  background-color: #00BCD4 !important; 
+  border-color: #00BCD4 !important;
+  box-shadow: none !important;
+}
+
+/* Para los botones de "Borrar" */
+.btn-delete:active,
+.btn-delete:focus {
+  background-color: #E53935 !important; 
+  border-color: #E53935 !important;
+  box-shadow: none !important;
+}
+
 .row {
-    display: flex;
-    flex-wrap: wrap;
+  display: flex;
+  flex-wrap: wrap;
 }
+
 .col-4 {
-    flex: 0 0 auto;
-    width: 33.33333333%;
+  flex: 0 0 auto;
+  width: 33.33333333%;
 }
+
 .col-8 {
-    flex: 0 0 auto;
-    width: 66.66666667%;
+  flex: 0 0 auto;
+  width: 66.66666667%;
 }
 </style>

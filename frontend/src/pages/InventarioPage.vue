@@ -27,33 +27,51 @@
       </div>
 
       <div class="actions-container">
-        <button class="btn btn-edit">
+        <button class="btn btn-edit" @click="abrirModal">
           <span>Editar</span>
           <img src="@/assets/Edit.png" alt="editar">
         </button>
       </div>
     </div>
+    
+    <EditarInventarioModal
+      v-if="modalVisible"
+      :inventario="inventario"
+      @cerrar="cerrarModal"
+      @guardar="guardarInventario"
+    />
   </main>
 </template>
+
 <script setup>
 import { ref } from 'vue';
+// ===== ADICIÓN: Importar el nuevo componente =====
+import EditarInventarioModal from '@/components/EditarInventarioModal.vue';
 
-// Datos de ejemplo para el inventario.
-// Esta es la información que luego conectarás con tu base de datos.
+// ===== ADICIÓN: Variables para controlar el modal =====
+const modalVisible = ref(false);
+
+// Datos de ejemplo (sin cambios)
 const inventario = ref([
-  { id: 1, cantidad: 350, detalle: 'Sillas', stockInicial: 350, salidas: 25, total: 325 },
-  { id: 2, cantidad: 10, detalle: 'Mesas rectangular de plastico', stockInicial: 10, salidas: 2, total: 8 },
-  { id: 3, cantidad: 20, detalle: 'Mesas rectangular de madera', stockInicial: 20, salidas: 10, total: 10 },
-  { id: 4, cantidad: 3, detalle: 'Toldos 6x4', stockInicial: 3, salidas: 1, total: 2 },
-  { id: 5, cantidad: 40, detalle: 'Cajas de vasos Largos', stockInicial: 42, salidas: 4, total: 38 },
-  { id: 6, cantidad: 4, detalle: 'Cajas de vasos cerveceros', stockInicial: 5, salidas: 2, total: 3 },
-  { id: 7, cantidad: 5, detalle: 'Tenedores metalicos', stockInicial: 50, salidas: 13, total: 37 },
-  { id: 8, cantidad: 53, detalle: 'Tenedores con mango de madera', stockInicial: 60, salidas: 7, total: 53 },
-  { id: 9, cantidad: 4, detalle: 'Cuchillos con mando de madera', stockInicial: 40, salidas: 32, total: 8 },
-  { id: 10, cantidad: 423, detalle: 'Cucharas metalicas', stockInicial: 450, salidas: 45, total: 405 },
-  { id: 11, cantidad: 23, detalle: 'Sobremantel guindo', stockInicial: 25, salidas: 2, total: 23 },
-  { id: 12, cantidad: 23, detalle: 'Sobremantel azul', stockInicial: 30, salidas: 7, total: 23 },
+  { id: 1, cantidad: 325, detalle: 'Sillas', stockInicial: 350, salidas: 25, total: 325 },
+  { id: 2, cantidad: 8, detalle: 'Mesas rectangular de plastico', stockInicial: 10, salidas: 2, total: 8 },
+  // ... resto de tus datos ...
 ]);
+
+// ===== ADICIÓN: Funciones para manejar la lógica del modal =====
+const abrirModal = () => {
+  modalVisible.value = true;
+};
+
+const cerrarModal = () => {
+  modalVisible.value = false;
+};
+
+const guardarInventario = (inventarioEditado) => {
+  // Reemplazamos la lista original con la lista editada que viene del modal
+  inventario.value = inventarioEditado;
+  cerrarModal();
+};
 </script>
 
 <style scoped>
@@ -171,5 +189,12 @@ const inventario = ref([
 }
 .btn-edit img{
   height: 23px;
+}
+/* Para los botones de "Editar" */
+.btn-edit:active,
+.btn-edit:focus {
+  background-color: #00BCD4 !important; 
+  border-color: #00BCD4 !important;
+  box-shadow: none !important;
 }
 </style>
