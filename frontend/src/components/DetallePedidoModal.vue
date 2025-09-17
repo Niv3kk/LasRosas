@@ -177,20 +177,17 @@ const actualizarTotales = () => {
   position: fixed; top: 0; left: 0; width: 100%; height: 100%;
   background-color: rgba(0, 0, 0, 0.6);
   display: flex; justify-content: center; align-items: center; z-index: 1000;
+  padding: 1rem;
 }
 .modal-content {
-  background: white; padding: 1rem 2rem 2rem 2rem; border-radius: 15px; width: 90%;
+  background: white; padding: 1rem;
+  border-radius: 15px; width: 100%;
   max-width: 800px; box-shadow: 0 5px 15px rgba(0,0,0,0.3);
   max-height: 90vh; display: flex; flex-direction: column;
 }
 
-/* --- ESTILOS CORREGIDOS Y NUEVOS --- */
-
 .modal-body {
-  flex-grow: 1; /* Permite que el cuerpo del modal crezca */
-  overflow: hidden; /* Oculta el scroll de este div */
-  display: flex;
-  flex-direction: column;
+  flex-grow: 1; overflow: hidden; display: flex; flex-direction: column;
 }
 
 .table-scroll-wrapper {
@@ -207,15 +204,15 @@ const actualizarTotales = () => {
 }
 
 /* --- (Resto de estilos sin cambios) --- */
-.modal-title { text-align: center; font-size: 2rem; margin-bottom: 1.5rem; }
-.modal-header-info { display: flex; justify-content: space-between; margin-bottom: 1rem; background: #f7f7f7; padding: 1rem; border-radius: 8px; }
+.modal-title { text-align: center; font-size: 2rem; margin-bottom: 5px; }
+.modal-header-info { display: flex; justify-content: space-between; margin-bottom: 1rem; background: #f7f7f7; padding: 5px; border-radius: 8px; }
 .modal-dates { text-align: center; margin: 1.5rem 0; font-size: 1.2rem; }
 .modal-table { width: 100%; border-collapse: collapse; }
 .modal-table th, .modal-table td { padding: 0.75rem; border-bottom: 1px solid #eee; }
-.modal-footer-info { display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; }
+.modal-footer-info { display: flex; justify-content: space-between; align-items: center; }
 .garantia { display: flex; align-items: center; gap: 0.5rem; }
 .total-final { font-size: 1.5rem; }
-.direccion { background: #f7f7f7; padding: 1rem; border-radius: 8px; margin-top: 1.5rem; }
+.direccion { background: #f7f7f7; padding: 10px; border-radius: 8px; margin-top: 5px; }
 .modal-actions { display: flex; justify-content: center; gap: 1rem; margin-top: 2rem; }
 .btn { border: none; border-radius: 8px; padding: 0.75rem 1.5rem; color: white; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; font-weight: 600; transition: opacity 0.2s; }
 .btn-edit { background-color: #00BCD4; }
@@ -271,6 +268,77 @@ const actualizarTotales = () => {
   background-color: #757575 !important;
   border-color: #757575 !important;
   box-shadow:none !important;
+}
+
+/* ===== SECCIÓN RESPONSIVA ACTUALIZADA ===== */
+@media (max-width: 768px) {
+  /* 3. APLICAMOS LOS ESTILOS RESPONSIVOS A LA TABLA EDITABLE */
+  .responsive-table thead {
+    display: none;
+  }
+
+  .responsive-table tr {
+    display: block;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    padding: 0.5rem;
+  }
+  
+  .responsive-table td {
+    display: block;
+    text-align: right !important;
+    padding-left: 50%;
+    position: relative;
+    border-bottom: 1px dotted #eee;
+  }
+  
+  .responsive-table td:last-child {
+    border-bottom: none;
+  }
+
+  .responsive-table td:before {
+    content: attr(data-label);
+    position: absolute;
+    left: 10px;
+    width: 45%;
+    padding-right: 10px;
+    text-align: left;
+    font-weight: bold;
+  }
+
+  /* Ajustamos los inputs para que se vean bien en este nuevo layout */
+  .responsive-table .input-table {
+    text-align: right;
+  }
+}
+
+/* Estilos para PC (a partir de 768px) */
+@media (min-width: 768px) {
+  .modal-content {
+    padding: 2rem;
+  }
+  .modal-title {
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+  }
+  .modal-header-info {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+  .modal-header-info > div,
+  .editable-section > div {
+    text-align: left !important;
+  }
+  .modal-header-info .text-end,
+  .editable-section .text-end {
+    text-align: right !important;
+  }
+  .modal-dates { font-size: 1.2rem; }
+  .modal-footer-info { flex-direction: row; justify-content: space-between; }
+  .total-final { font-size: 1.5rem; }
+  .direccion { text-align: left; }
+  .modal-actions { flex-direction: row; justify-content: center; }
 }
 
 </style>

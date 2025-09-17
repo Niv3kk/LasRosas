@@ -14,35 +14,82 @@
         <div>{{ usuario.nombre }}</div>
         <div>{{ usuario.rol }}</div>
         <div class="actions">
-          <button class="btn btn-edit">
+          <button class="btn btn-edit" @click="abrirModalParaEditar(usuario)">
             <span>Editar</span>
             <img src="@/assets/Edit.png" alt="editar">
           </button>
-          <button class="btn btn-delete">
+          <button class="btn btn-delete" @click="borrarUsuario(usuario.id)">
             <span>Borrar</span>
-            <img src="@/assets/Delete.png" alt="editar">
+            <img src="@/assets/Delete.png" alt="borrar">
           </button>
         </div>
       </div>
 
-      <div class="user-row add-user-row">
+      <div class="user-row add-user-row" @click="abrirModalParaAnadir">
         <div class="add-icon">+</div>
       </div>
-
     </div>
+
+    <EditarUsuarioModal
+      v-if="modalVisible"
+      :usuario="usuarioSeleccionado"
+      @cerrar="cerrarModal"
+      @guardar="guardarUsuario"
+      @borrar="borrarUsuario"
+    />
   </main>
 </template>
 
 <script setup>
 import { ref } from 'vue';
+// ===== ADICIÓN: Importar el nuevo componente =====
+import EditarUsuarioModal from '@/components/EditarUsuarioModal.vue';
 
-// Datos de ejemplo para la lista de usuarios.
-// Esto lo conectarás después con tu base de datos.
+// ===== ADICIÓN: Variables para controlar el modal =====
+const modalVisible = ref(false);
+const usuarioSeleccionado = ref(null);
+
 const usuarios = ref([
   { id: 1, nombre: 'JOSE ROSAS', rol: 'Administrador' },
   { id: 2, nombre: 'HILDA ALMENDRAS', rol: 'Encargado' },
-  // ... aquí irían más usuarios
 ]);
+
+// ===== ADICIÓN: Funciones para manejar la lógica del modal =====
+const abrirModalParaEditar = (usuario) => {
+  usuarioSeleccionado.value = usuario;
+  modalVisible.value = true;
+};
+
+const abrirModalParaAnadir = () => {
+  usuarioSeleccionado.value = null; // Le pasamos null para que el modal sepa que es un usuario nuevo
+  modalVisible.value = true;
+};
+
+const cerrarModal = () => {
+  modalVisible.value = false;
+};
+
+const guardarUsuario = (usuarioData) => {
+  if (usuarioData.id) {
+    // Si tiene ID, es una actualización
+    const index = usuarios.value.findIndex(u => u.id === usuarioData.id);
+    if (index !== -1) {
+      usuarios.value[index] = usuarioData;
+    }
+  } else {
+    // Si no tiene ID, es uno nuevo
+    const nuevoId = Math.max(...usuarios.value.map(u => u.id)) + 1;
+    usuarios.value.push({ id: nuevoId, ...usuarioData });
+  }
+  cerrarModal();
+};
+
+const borrarUsuario = (idUsuario) => {
+  if (confirm('¿Estás seguro de que quieres borrar a este usuario?')) {
+    usuarios.value = usuarios.value.filter(u => u.id !== idUsuario);
+    cerrarModal(); // Cierra el modal si estaba abierto
+  }
+};
 </script>
 
 <style scoped>
@@ -142,6 +189,12 @@ const usuarios = ref([
 .btn-delete img{
   height: 23px;
 }
+.btn-edit:active,
+.btn-edit:focus {
+  background-color: #00BCD4 !important; 
+  border-color: #00BCD4 !important;
+  box-shadow: none !important;
+}
 
 
 .add-user-row {
@@ -161,5 +214,10 @@ const usuarios = ref([
   color: #888;
   font-weight: 300;
 }
-
+.btn-delete:active,
+.btn-delete:focus {
+  background-color: #E53935 !important; 
+  border-color: #E53935 !important;
+  box-shadow: none !important;
+}
 </style>

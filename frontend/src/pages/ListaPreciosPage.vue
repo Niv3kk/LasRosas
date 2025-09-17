@@ -136,7 +136,7 @@ const guardarCambios = (listaEditada) => {
 .titles-wrapper {
   display: flex;
   justify-content: center;
-  gap: 30rem;
+  gap: 15rem;
   margin-bottom: 2rem;
 }
 

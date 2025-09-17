@@ -1,6 +1,8 @@
 <template>
-  <div class="dash-root">
-    <TopBar />
+  <div class="dash-root" :class="{ 'sidebar-open': isSidebarOpen }">
+    <TopBar @toggle-sidebar="toggleSidebar" />
+
+    <div class="backdrop" @click="toggleSidebar"></div>
 
     <div class="dash-body">
       <SideBar />
@@ -12,38 +14,67 @@
 </template>
 
 <script setup>
+import { ref } from 'vue';
 import TopBar from './TopBar.vue'
 import SideBar from './SideBar.vue'
+
+// 3. Creamos una variable para saber si el sidebar está abierto o cerrado
+const isSidebarOpen = ref(false);
+
+// 4. Creamos la función que cambia el estado
+const toggleSidebar = () => {
+  isSidebarOpen.value = !isSidebarOpen.value;
+};
 </script>
 
 <style>
-/* Reseteo básico para que el layout ocupe toda la pantalla sin márgenes inesperados */
-html, body {
-  margin: 0;
-  padding: 0;
-  height: 100%;
-}
+/* ... (tu CSS existente de html, body se queda igual) ... */
+html, body { margin: 0; padding: 0; height: 100%; }
 
-/* 1. Contenedor Raíz: ahora usa Flexbox y tiene altura FIJA */
 .dash-root {
   display: flex;
   flex-direction: column;
-  height: 100vh; /* <-- CLAVE: altura fija al 100% de la ventana */
+  height: 100vh;
   background: #e9ebed;
-  overflow: hidden; /* <-- CLAVE: Evita que el body tenga scroll */
+  overflow: hidden;
 }
 
-/* 2. Cuerpo Principal: crece para ocupar el espacio restante */
 .dash-body {
   display: grid;
-  grid-template-columns: 260px 1fr; /* 260px sidebar, el resto contenido */
-  flex-grow: 1; /* <-- CLAVE: hace que ocupe el espacio que dejó el TopBar */
-  overflow: hidden; /* Contiene a sus hijos */
+  grid-template-columns: 260px 1fr; /* <- Diseño para PC */
+  flex-grow: 1;
+  overflow: hidden;
 }
 
-/* 3. Área de Contenido: es la única con scroll */
 .dash-content {
   padding: 24px;
-  overflow-y: auto; /* <-- CLAVE: Aquí aparecerá la barra de scroll */
+  overflow-y: auto;
+}
+
+/* ===== NUEVO: ESTILOS RESPONSIVOS ===== */
+.backdrop {
+  display: none; /* Oculto en PC */
+}
+
+/* Usamos una media query para aplicar estilos solo en pantallas pequeñas (ej. < 992px) */
+@media (max-width: 992px) {
+  .dash-body {
+    grid-template-columns: 1fr; /* <- En móvil, solo hay una columna */
+  }
+
+  /* Cuando .sidebar-open está activo en el root... */
+  .sidebar-open .sidebar {
+    transform: translateX(0); /* ...el sidebar se desliza a su posición visible */
+  }
+  .sidebar-open .backdrop {
+    display: block; /* ...y el fondo oscuro aparece */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 998; /* Justo debajo del sidebar */
+  }
 }
 </style>

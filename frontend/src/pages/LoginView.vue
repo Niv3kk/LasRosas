@@ -164,6 +164,12 @@ async function onSubmit() {
   background:#fde2e4;
   color:#921a24;
 }
+.btn-rose:active,
+.btn-rose:focus {
+  background-color: #C83647 !important; 
+  border-color: #C83647 !important;
+  box-shadow: none !important;
+}
 
 /* ===== Responsive ===== */
 @media (max-width: 420px){

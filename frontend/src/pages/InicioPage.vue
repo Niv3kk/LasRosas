@@ -191,7 +191,7 @@ const guardarPedidoEditado = (pedidoEditado) => {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  padding: 5px 80px;
+  padding: 5px 55px;
   border: none;
   border-radius: 8px;
   cursor: pointer;

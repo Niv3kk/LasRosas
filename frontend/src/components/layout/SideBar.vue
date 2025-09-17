@@ -17,10 +17,6 @@
         <img class="logos" src="@/assets/ListaPrecio.png" alt="ListaPrecio"/>
         <span>Lista de precios</span>
       </RouterLink>
-      <RouterLink class="item" to="/app/reportes">
-        <img class="logos" src="@/assets/Reportes.png" alt="Reportes.png"/>
-        <span>Reportes</span>
-      </RouterLink>
       <RouterLink class="item" to="/app/historial-inventario">
         <img class="logos" src="@/assets/HistorialInventario.png" alt="HistorialInventario"/>
         <span>Historial de inventario</span>
@@ -53,25 +49,27 @@
   display: flex;
   flex-direction: column;
   border-right: 1px solid #e3e3e3;
-  /* Se eliminó height y position: sticky */
 }
 .menu{ padding: 16px 10px; display: grid; gap: 6px; }
-.item{
-  display: flex; align-items: center; gap: 15px;
-  padding: 15px 12px; border-radius: 10px; color: #40444b; text-decoration: none;
-}
-.item i{ font-size: 20px; width: 22px; text-align: center; }
+.item{ display: flex; align-items: center; gap: 15px; padding: 15px 12px; border-radius: 10px; color: #40444b; text-decoration: none; }
 .item:hover{ background: #dde4e6; }
 .item.router-link-active{ background:#d2d8da; font-weight: 600; }
-
 .sidebar-bottom{ margin-top: auto; padding: 14px; }
-.avatar{
-  width: 38px; height: 38px; border-radius: 50%;
-  background: #c9434d; color: #fff; display:grid; place-items:center; font-weight:700;
-}
+.avatar{ width: 38px; height: 38px; border-radius: 50%; background: #c9434d; color: #fff; display:grid; place-items:center; font-weight:700; }
 .user-name{ font-size: 14px; font-weight: 700; }
 .user-role{ font-size: 12px; color:#6b6f75; margin-top:-2px; }
-.logos{
-  height: 24px;
+.logos{ height: 24px; }
+
+/* ===== NUEVO: ESTILOS RESPONSIVOS PARA EL SIDEBAR ===== */
+@media (max-width: 992px) {
+  .sidebar {
+    position: fixed; /* Posición fija para que flote */
+    top: 0;
+    left: 0;
+    height: 100vh; /* Ocupa toda la altura */
+    z-index: 1000; /* Por encima de todo */
+    transform: translateX(-260px); /* Oculto fuera de la pantalla a la izquierda */
+    transition: transform 0.3s ease-in-out; /* Transición suave */
+  }
 }
 </style>

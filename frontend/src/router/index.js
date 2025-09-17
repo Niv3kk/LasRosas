@@ -36,7 +36,6 @@ const router = createRouter({
         { path: 'historial-pedidos', name: 'historial-pedidos', component: () => import('@/pages/HistorialAquileresPage.vue') },
         { path: 'inventario', name: 'inventario', component: () => import('@/pages/InventarioPage.vue') },
         { path: 'lista-precios', name: 'lista-precios', component: () => import('@/pages/ListaPreciosPage.vue') },
-        { path: 'reportes', name: 'reportes', component: () => import('@/pages/ReportesPage.vue') },
         { path: 'historial-inventario', name: 'historial-inventario', component: () => import('@/pages/HistorialInventarioPage.vue') },
         { path: 'usuarios', name: 'usuarios', component: () => import('@/pages/UsuariosPage.vue') },
       ],
