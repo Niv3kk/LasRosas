@@ -292,4 +292,29 @@ const guardarAlquiler = (alquilerEditado) => {
   flex: 0 0 auto;
   width: 66.66666667%;
 }
+
+/* ===== NUEVO: ESTILOS RESPONSIVOS PARA LA PÁGINA ===== */
+@media (max-width: 768px) {
+  .historial-container {
+    padding: 1rem; /* Menos padding en móvil */
+  }
+  .search-bar {
+    flex-direction: column; /* Apila el buscador y el filtro */
+  }
+  .historial-card {
+    flex-direction: column; /* Apila las secciones de la tarjeta */
+    gap: 1rem;
+  }
+  .card-details {
+    padding: 1rem 0; /* Ajusta el padding */
+    border-left: none;
+    border-right: none;
+    border-top: 1px solid #eee;
+    border-bottom: 1px solid #eee;
+  }
+  .card-actions {
+    flex-direction: row; /* Botones en fila en móvil */
+    justify-content: center;
+  }
+}
 </style>

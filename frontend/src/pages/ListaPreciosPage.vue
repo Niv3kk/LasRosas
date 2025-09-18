@@ -17,24 +17,26 @@
         </h2>
       </div>
 
-      <table class="prices-table">
-        <thead>
-          <tr>
-            <th>Cant.</th>
-            <th>Detalle</th>
-            <th>Precio Unit.</th>
-            <th>Total</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="item in datosTablaActiva" :key="item.id">
-            <td class="text-right">{{ item.cantidad }}</td>
-            <td>{{ item.detalle }}</td>
-            <td class="text-right">{{ item.precioUnitario }} Bs.</td>
-            <td class="text-right fw-bold">{{ item.total }} Bs.</td>
-          </tr>
-        </tbody>
-      </table>
+      <div class="table-scroll-wrapper">
+        <table class="prices-table responsive-table">
+          <thead>
+            <tr>
+              <th>Cant.</th>
+              <th>Detalle</th>
+              <th>Precio Unit.</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="item in datosTablaActiva" :key="item.id">
+              <td data-label="Cant." class="text-right">{{ item.cantidad }}</td>
+              <td data-label="Detalle">{{ item.detalle }}</td>
+              <td data-label="P/Unit" class="text-right">{{ item.precioUnitario }} Bs.</td>
+              <td data-label="Total" class="text-right fw-bold">{{ item.total }} Bs.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
       <div class="actions-container">
         <button class="btn btn-edit" @click="abrirModal">
@@ -43,6 +45,7 @@
         </button>
       </div>
     </div>
+    
     <EditarPreciosModal
       v-if="modalVisible"
       :lista="datosTablaActiva"
@@ -51,6 +54,7 @@
     />
   </main>
 </template>
+
 
 <script setup>
 import { ref, computed } from 'vue';
@@ -122,14 +126,21 @@ const guardarCambios = (listaEditada) => {
   padding: 2rem;
   background-color: #f0f2f5;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  height: 100%;
+  display: flex;
 }
 
 /* Contenedor blanco para la tabla */
 .table-container {
   background: white;
   border-radius: 12px;
-  padding: 1.5rem 2rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  /* 4. Hacemos que la tarjeta sea un contenedor flex vertical */
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1; /* Ocupa todo el espacio de la página */
+  overflow: hidden; /* Clave para que el scroll interno funcione bien */
+  padding: 1.5rem 2rem;
 }
 
 /* Contenedor de los títulos/pestañas */
@@ -139,7 +150,10 @@ const guardarCambios = (listaEditada) => {
   gap: 15rem;
   margin-bottom: 2rem;
 }
-
+.table-scroll-wrapper {
+  flex-grow: 1; /* Hace que esta área crezca para ocupar el espacio sobrante */
+  overflow-y: auto; /* AÑADE EL SCROLL SÓLO A ESTA ÁREA */
+}
 .section-title {
   font-size: 2.1rem;
   font-weight: 500;
@@ -237,5 +251,30 @@ const guardarCambios = (listaEditada) => {
   background-color: #00BCD4 !important; 
   border-color: #00BCD4 !important;
   box-shadow: none !important;
+}
+/* --- ESTILOS RESPONSIVOS (ajustados) --- */
+@media (max-width: 768px) {
+  .precios-container {
+    padding: 1rem;
+  }
+  .table-container {
+    padding: 1rem;
+  }
+  .titles-wrapper {
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: center;
+    padding-bottom: 1rem;
+  }
+  .section-title {
+    font-size: 1.2rem;
+  }
+  
+  /* (El código para la tabla responsiva no necesita cambios) */
+  .responsive-table thead { display: none; }
+  .responsive-table tr { display: block; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 1rem; padding: 1rem; }
+  .responsive-table td { display: block; text-align: right !important; padding-left: 50%; position: relative; border-bottom: 1px dotted #eee; }
+  .responsive-table td:last-child { border-bottom: none; }
+  .responsive-table td:before { content: attr(data-label); position: absolute; left: 10px; width: 45%; text-align: left; font-weight: bold; }
 }
 </style>

@@ -142,4 +142,18 @@ const quitarItem = (index) => {
   border-color: #2196F3 !important;
   box-shadow: none !important;
 }
+@media (min-width: 768px) {
+  .modal-content { padding: 2rem; }
+  .modal-title { font-size: 1.8rem; }
+  .modal-actions { flex-direction: row; justify-content: flex-end; }
+  .modal-table td { padding: 0.75rem; }
+
+  /* Restauramos la tabla para PC */
+  .responsive-table thead { display: table-header-group; }
+  .responsive-table tr { display: table-row; border: none; margin-bottom: 0; padding: 0; }
+  .responsive-table td { display: table-cell; text-align: left !important; padding-left: 0.75rem; position: static; border-bottom: 1px solid #eee; }
+  .responsive-table .text-right { text-align: right !important; }
+  .responsive-table .text-center { text-align: center !important; }
+  .responsive-table td:before { content: none; }
+}
 </style>

@@ -87,7 +87,7 @@ const quitarItem = (index) => {
   display: flex; justify-content: center; align-items: center; z-index: 1000;
 }
 .modal-content {
-  background: white; padding: 2rem; border-radius: 15px; width: 90%;
+  background: white; padding: 1rem; border-radius: 15px; width: 90%;
   max-width: 900px; box-shadow: 0 5px 15px rgba(0,0,0,0.3);
   display: flex; flex-direction: column; max-height: 90vh;
 }
@@ -146,5 +146,20 @@ const quitarItem = (index) => {
   background-color: #2196F3 !important; 
   border-color: #2196F3 !important;
   box-shadow: none !important;
+}
+/* ===== ESTILOS PARA PANTALLAS GRANDES ===== */
+@media (min-width: 768px) {
+  .modal-content { padding: 1rem; }
+  .modal-title { font-size: 1.8rem; }
+  .modal-actions { flex-direction: row; justify-content: flex-end; }
+  .modal-table td { padding: 0.75rem; }
+
+  /* Restauramos la tabla para PC */
+  .responsive-table thead { display: table-header-group; }
+  .responsive-table tr { display: table-row; border: none; margin-bottom: 0; padding: 0; }
+  .responsive-table td { display: table-cell; text-align: left !important; padding-left: 0.75rem; position: static; border-bottom: 1px solid #eee; }
+  .responsive-table .text-right { text-align: right !important; }
+  .responsive-table .text-center { text-align: center !important; }
+  .responsive-table td:before { content: none; }
 }
 </style>

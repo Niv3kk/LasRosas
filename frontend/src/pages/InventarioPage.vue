@@ -197,4 +197,42 @@ const guardarInventario = (inventarioEditado) => {
   border-color: #00BCD4 !important;
   box-shadow: none !important;
 }
+/* ===== NUEVO: ESTILOS RESPONSIVOS PARA LA TABLA PRINCIPAL ===== */
+@media (max-width: 768px) {
+  .inventario-container {
+    padding: 1rem; /* Menos padding en la página */
+  }
+  .table-container {
+    padding: 0.5rem; /* Menos padding en la tarjeta */
+  }
+  .responsive-table thead {
+    display: none; /* Ocultamos la cabecera original */
+  }
+  .responsive-table tr {
+    display: block;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    padding: 1rem;
+  }
+  .responsive-table td {
+    display: block;
+    text-align: right !important;
+    padding-left: 40%;
+    position: relative;
+    border-bottom: 1px dotted #eee;
+  }
+  .responsive-table td:last-child {
+    border-bottom: none;
+  }
+  .responsive-table td:before {
+    content: attr(data-label);
+    position: absolute;
+    left: 10px;
+    width: 35%;
+    padding-right: 10px;
+    text-align: left;
+    font-weight: bold;
+  }
+}
 </style>
