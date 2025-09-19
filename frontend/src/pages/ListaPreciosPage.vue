@@ -272,7 +272,7 @@ const guardarCambios = (listaEditada) => {
   
   /* (El código para la tabla responsiva no necesita cambios) */
   .responsive-table thead { display: none; }
-  .responsive-table tr { display: block; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 1rem; padding: 1rem; }
+  .responsive-table tr { display: block; border: 1px solid #00000069; border-radius: 8px; margin-bottom: 1rem; padding: 1rem; }
   .responsive-table td { display: block; text-align: right !important; padding-left: 50%; position: relative; border-bottom: 1px dotted #eee; }
   .responsive-table td:last-child { border-bottom: none; }
   .responsive-table td:before { content: attr(data-label); position: absolute; left: 10px; width: 45%; text-align: left; font-weight: bold; }

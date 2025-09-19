@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="d-flex align-items-center mb-3">
+    <div class="d-flex flex-column flex-md-row align-items-center mb-3">
       <h2 
         class="section-title mb-0 flex-grow-1"
         :class="{ 'active-title': vistaActiva === 'pendientes' }"

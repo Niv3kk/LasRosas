@@ -165,6 +165,7 @@ const guardarAlquiler = (alquilerEditado) => {
   cursor: pointer;
   font-size: 1rem;
   transition: background-color 0.2s;
+  justify-content: center;
 }
 
 .filter-btn img {

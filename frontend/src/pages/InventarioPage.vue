@@ -4,7 +4,7 @@
 
     <div class="table-container">
       <div class="table-scroll-wrapper">
-        <table class="inventory-table">
+        <table class="inventory-table responsive-table">
           <thead>
             <tr>
               <th>Cant.</th>
@@ -16,11 +16,11 @@
           </thead>
           <tbody>
             <tr v-for="item in inventario" :key="item.id">
-              <td class="text-right">{{ item.cantidad }}</td>
-              <td>{{ item.detalle }}</td>
-              <td class="text-right">{{ item.stockInicial }}</td>
-              <td class="text-right">{{ item.salidas }}</td>
-              <td class="text-right fw-bold">{{ item.total }}</td>
+              <td data-label="Cant." class="text-right">{{ item.cantidad }}</td>
+              <td data-label="Detalle">{{ item.detalle }}</td>
+              <td data-label="Stock Inicial" class="text-right">{{ item.stockInicial }}</td>
+              <td data-label="Salidas" class="text-right">{{ item.salidas }}</td>
+              <td data-label="Total" class="text-right fw-bold">{{ item.total }}</td>
             </tr>
           </tbody>
         </table>
@@ -130,7 +130,7 @@ const guardarInventario = (inventarioEditado) => {
 
 .inventory-table th,
 .inventory-table td {
-  padding: 0.8rem 1rem;
+  padding: 0.8rem 5px;
   text-align: left;
   vertical-align: middle;
 }
@@ -197,20 +197,20 @@ const guardarInventario = (inventarioEditado) => {
   border-color: #00BCD4 !important;
   box-shadow: none !important;
 }
-/* ===== NUEVO: ESTILOS RESPONSIVOS PARA LA TABLA PRINCIPAL ===== */
+/* TUS ESTILOS RESPONSIVOS ESTÁN CORRECTOS, AHORA FUNCIONARÁN */
 @media (max-width: 768px) {
   .inventario-container {
-    padding: 1rem; /* Menos padding en la página */
+    padding: 1rem;
   }
   .table-container {
-    padding: 0.5rem; /* Menos padding en la tarjeta */
+    padding: 0.5rem;
   }
   .responsive-table thead {
-    display: none; /* Ocultamos la cabecera original */
+    display: none;
   }
   .responsive-table tr {
     display: block;
-    border: 1px solid #ddd;
+    border: 1px solid #00000069;
     border-radius: 8px;
     margin-bottom: 1rem;
     padding: 1rem;

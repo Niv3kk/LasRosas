@@ -89,7 +89,7 @@ const quitarItem = (index) => {
 <style scoped>
 /* (Estilos existentes del modal) */
 .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 1000; }
-.modal-content { background: white; padding: 2rem; border-radius: 15px; width: 90%; max-width: 900px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); max-height: 90vh; display: flex; flex-direction: column; }
+.modal-content { background: white; padding: 1rem; border-radius: 15px; width: 90%; max-width: 900px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); max-height: 90vh; display: flex; flex-direction: column; }
 .modal-title { text-align: center; font-size: 1.8rem; margin-bottom: 1.5rem; flex-shrink: 0; }
 .table-scroll-wrapper { overflow-y: auto; flex-grow: 1; border: 1px solid #eee; border-radius: 8px; }
 .modal-table { width: 100%; border-collapse: collapse; }

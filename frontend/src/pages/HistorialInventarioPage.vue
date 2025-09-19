@@ -156,4 +156,30 @@ const historial = ref([
 .negative-change {
   color: #E53935; /* Rojo */
 }
+/* ===== NUEVO: ESTILOS RESPONSIVOS ===== */
+@media (max-width: 768px) {
+  .historial-container {
+    padding: 1rem; /* Menos padding en la página */
+  }
+
+  .search-bar {
+    flex-direction: column; /* Apila el buscador y el filtro */
+  }
+  .filter-btn{
+    justify-content: center;
+  }
+
+  .log-card {
+    grid-template-columns: 1fr; /* Cambia el grid a una sola columna */
+    gap: 0.5rem; /* Reduce el espacio entre los items apilados */
+    text-align: center; /* Centra el contenido para un look uniforme */
+  }
+
+  /* Anulamos las alineaciones específicas para que el centrado general funcione */
+  .log-date,
+  .log-detail,
+  .log-change {
+    text-align: center;
+  }
+}
 </style>

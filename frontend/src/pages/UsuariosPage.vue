@@ -220,4 +220,29 @@ const borrarUsuario = (idUsuario) => {
   border-color: #E53935 !important;
   box-shadow: none !important;
 }
+/* ===== NUEVO: ESTILOS RESPONSIVOS PARA LA PÁGINA ===== */
+@media (max-width: 768px) {
+  .usuarios-container {
+    padding: 1rem;
+  }
+  .main-title {
+    font-size: 1.8rem; /* Título más pequeño */
+  }
+
+  /* Ocultamos la cabecera en móvil, ya que el layout será obvio */
+  .user-list-header {
+    display: none;
+  }
+
+  .user-row {
+    grid-template-columns: 1fr; /* Cambiamos a una sola columna */
+    text-align: center; /* Centramos todo el texto */
+    gap: 0.75rem; /* Menos espacio entre los elementos apilados */
+  }
+
+  .actions {
+    justify-content: center; /* Centramos los botones */
+    margin-top: 0.5rem;
+  }
+}
 </style>

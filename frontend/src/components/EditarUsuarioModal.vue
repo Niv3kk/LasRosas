@@ -16,8 +16,6 @@
       </div>
 
       <div class="modal-actions">
-        <button v-if="usuario" class="btn btn-delete" @click="borrar">Borrar</button>
-        <div class="spacer"></div>
         <button class="btn btn-cancel" @click="$emit('cerrar')">Cancelar</button>
         <button class="btn btn-save" @click="guardar">Guardar</button>
       </div>
@@ -74,7 +72,7 @@ const borrar = () => {
 .form-section { display: flex; flex-direction: column; gap: 0.5rem; }
 .form-section label { font-weight: 600; color: #555; margin-top: 0.5rem; }
 .form-section input, .form-section select { width: 100%; padding: 0.75rem; border: 1px solid #ccc; border-radius: 8px; font-size: 1rem; box-sizing: border-box; }
-.modal-actions { display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2rem; align-items: center; }
+.modal-actions { display: flex; justify-content: space-evenly; gap: 1rem; margin-top: 2rem; align-items: center; }
 .spacer { flex-grow: 1; } /* Espaciador flexible */
 .btn { border: none; border-radius: 8px; padding: 0.75rem 1.5rem; color: white; cursor: pointer; font-weight: 600; }
 .btn-delete { background-color: #E53935; }
