@@ -38,12 +38,13 @@
         </table>
       </div>
 
-      <div class="actions-container">
+      <div class="actions-container" v-if="usuarioActual.rol === 'Administrador'">
         <button class="btn btn-edit" @click="abrirModal">
           <span>Editar</span>
           <img src="@/assets/Edit.png" alt="editar">
         </button>
       </div>
+      
     </div>
     
     <EditarPreciosModal
@@ -55,60 +56,36 @@
   </main>
 </template>
 
-
 <script setup>
 import { ref, computed } from 'vue';
-// AÑADE ESTAS LÍNEAS DEBAJO DE "import { ref, computed } from 'vue';"
+// ===== 1. SE IMPORTA EL USUARIO ACTUAL PARA VERIFICAR EL ROL =====
+import { usuarioActual } from '@/services/auth.js';
 import EditarPreciosModal from '@/components/EditarPreciosModal.vue';
 
-// Nuevas variables para controlar el modal
 const modalVisible = ref(false);
-
-// Variable para saber qué vista está activa: 'precios' o 'danos'
 const vistaActiva = ref('precios');
 
-// --- DATOS DE EJEMPLO ---
-// Luego conectarás esto a tu base de datos
-
-// Datos para la "Lista de Precios" normal
 const listaPrecios = ref([
   { id: 1, cantidad: 12, detalle: 'Sillas', precioUnitario: 25, total: 300 },
   { id: 2, cantidad: 120, detalle: 'Mesas rectangular de plastico', precioUnitario: 2, total: 240 },
-  { id: 3, cantidad: 12, detalle: 'Mesas rectangular de madera', precioUnitario: 10, total: 120 },
-  { id: 4, cantidad: 121, detalle: 'Mesas redondas de madera', precioUnitario: 1, total: 121 },
-  { id: 5, cantidad: 2, detalle: 'Toldos 6x4', precioUnitario: 23, total: 46 },
-  { id: 6, cantidad: 5, detalle: 'Cajas de vasos Largos', precioUnitario: 234, total: 1170 },
-  { id: 7, cantidad: 4, detalle: 'Cajas de vasos cerveceros', precioUnitario: 43, total: 172 },
+  // ... más datos
 ]);
 
-// Datos para la "Lista de Precios daño o perdida"
 const listaPreciosDanos = ref([
   { id: 1, cantidad: 12, detalle: 'Sillas', precioUnitario: 50, total: 600 },
-  { id: 2, cantidad: 120, detalle: 'Mesas rectangular de plastico', precioUnitario: 5, total: 600 },
-  { id: 3, cantidad: 12, detalle: 'Mesas rectangular de madera', precioUnitario: 30, total: 360 },
-  { id: 4, cantidad: 2, detalle: 'Toldos 6x4', precioUnitario: 100, total: 200 },
-  { id: 5, cantidad: 4, detalle: 'Cajas de vasos cerveceros', precioUnitario: 80, total: 320 },
+  // ... más datos
 ]);
 
-
-// Propiedad computada que devuelve la lista de datos correcta según la vistaActiva
 const datosTablaActiva = computed(() => {
-  if (vistaActiva.value === 'precios') {
-    return listaPrecios.value;
-  } else {
-    return listaPreciosDanos.value;
-  }
+  return vistaActiva.value === 'precios' ? listaPrecios.value : listaPreciosDanos.value;
 });
 
-// AÑADE ESTAS FUNCIONES AL FINAL DE TU SCRIPT
 const abrirModal = () => {
   modalVisible.value = true;
 };
-
 const cerrarModal = () => {
   modalVisible.value = false;
 };
-
 const guardarCambios = (listaEditada) => {
   if (vistaActiva.value === 'precios') {
     listaPrecios.value = listaEditada;
@@ -116,7 +93,6 @@ const guardarCambios = (listaEditada) => {
     listaPreciosDanos.value = listaEditada;
   }
   cerrarModal();
-
 };
 </script>
 

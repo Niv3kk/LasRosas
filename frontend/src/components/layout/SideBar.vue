@@ -17,22 +17,25 @@
         <img class="logos" src="@/assets/ListaPrecio.png" alt="ListaPrecio"/>
         <span>Lista de precios</span>
       </RouterLink>
-      <RouterLink class="item" to="/app/historial-inventario">
-        <img class="logos" src="@/assets/HistorialInventario.png" alt="HistorialInventario"/>
-        <span>Historial de inventario</span>
-      </RouterLink>
-      <RouterLink class="item" to="/app/usuarios">
-        <img class="logos" src="@/assets/GestionUsuarios.png" alt="GestionUsuarios"/>
-        <span>Gestión de usuarios</span>  
-      </RouterLink>
-    </nav>
+
+      <template v-if="usuarioActual.rol === 'Administrador'">
+        <RouterLink class="item" to="/app/historial-inventario">
+          <img class="logos" src="@/assets/HistorialInventario.png" alt="HistorialInventario"/>
+          <span>Historial de inventario</span>
+        </RouterLink>
+        <RouterLink class="item" to="/app/usuarios">
+          <img class="logos" src="@/assets/GestionUsuarios.png" alt="GestionUsuarios"/>
+          <span>Gestión de usuarios</span>  
+        </RouterLink>
+      </template>
+      </nav>
 
     <div class="sidebar-bottom">
       <div class="user d-flex gap-2">
-        <div class="avatar">JR</div>
+        <div class="avatar">{{ inicialesUsuario }}</div>
         <div>
-          <div class="user-name">JOSE ROSAS</div>
-          <div class="user-role">Administrador</div>
+          <div class="user-name">{{ usuarioActual.nombre }}</div>
+          <div class="user-role">{{ usuarioActual.rol }}</div>
         </div>
       </div>
       <button class="btn btn-outline-danger btn-sm w-100 mt-2">
@@ -41,6 +44,21 @@
     </div>
   </aside>
 </template>
+
+<script setup>
+import { computed } from 'vue';
+// 1. Se importa la variable reactiva del usuario
+import { usuarioActual } from '@/services/auth.js';
+
+// 2. (Opcional) Se crea una propiedad computada para las iniciales del avatar
+const inicialesUsuario = computed(() => {
+  const partes = usuarioActual.value.nombre.split(' ');
+  if (partes.length >= 2) {
+    return partes[0][0] + partes[1][0];
+  }
+  return usuarioActual.value.nombre.substring(0, 2);
+});
+</script>
 
 <style scoped>
 .sidebar {

@@ -33,14 +33,23 @@
         </div>
 
         <div class="card-actions">
-          <button class="btn btn-edit" @click="abrirModal(alquiler)">
-            <span>Editar</span>
-            <img src="@/assets/Edit.png" alt="editar" />
-          </button>
-          <button class="btn btn-delete" @click="abrirModal(alquiler)">
-            <span>Borrar</span>
-            <img src="@/assets/Delete.png" alt="eliminar" />
-          </button>
+          <template v-if="usuarioActual.rol === 'Administrador'">
+            <button class="btn btn-edit" @click="abrirModal(alquiler)">
+              <span>Editar</span>
+              <img src="@/assets/Edit.png" alt="editar" />
+            </button>
+            <button class="btn btn-delete" @click="abrirModal(alquiler)">
+              <span>Borrar</span>
+              <img src="@/assets/Delete.png" alt="eliminar" />
+            </button>
+          </template>
+          
+          <template v-else-if="usuarioActual.rol === 'Propietaria'">
+            <button class="btn btn-revisar" @click="abrirModal(alquiler)">
+              <span>Revisar</span>
+              <img src="@/assets/Revisar.png" alt="revisar" />
+            </button>
+          </template>
         </div>
       </div>
     </div>
@@ -48,6 +57,7 @@
     <EditarAlquilerModal
       v-if="modalVisible"
       :alquiler="alquilerSeleccionado"
+      :rol="usuarioActual.rol"
       @cerrar="cerrarModal"
       @borrar="borrarAlquiler"
       @guardar="guardarAlquiler" 
@@ -57,32 +67,52 @@
 
 <script setup>
 import { ref } from 'vue';
-// ===== ADICIÓN: Importar el nuevo componente =====
+import { usuarioActual } from '@/services/auth.js'; // Asegúrate que la ruta sea correcta
 import EditarAlquilerModal from '@/components/EditarAlquilerModal.vue';
 
-// ===== ADICIÓN: Variables para controlar el modal =====
 const modalVisible = ref(false);
 const alquilerSeleccionado = ref(null);
 
-// Datos de ejemplo (sin cambios)
+// ===== DATOS DE EJEMPLO ACTUALIZADOS Y ENRIQUECIDOS =====
 const historiales = ref([
   {
     id: 1,
     cliente: 'Andrea Garnica',
+    celular1: '123456789',
+    celular2: '76839233',
+    numeroPedido: 'HIST-001',
     ubicacion: 'Urb. Del Valle #12',
+    direccion: 'Pronto Gas, Av. Villazon Km2 acera sud',
     fecha: '14/09/2024',
-    detalle: [ { cant: 50, item: 'Mesas' }, { cant: 600, item: 'Sillas' } ],
+    fechaEntrega: '10/09/2024',
+    fechaRecojo: '14/09/2024',
+    garantia: true,
+    granTotal: 350,
+    detalle: [ 
+      { cant: 50, item: 'Mesas', precioUnitario: 5, total: 250 }, 
+      { cant: 100, item: 'Sillas', precioUnitario: 1, total: 100 } 
+    ],
   },
   {
     id: 2,
     cliente: 'Carlos Soliz',
+    celular1: '77778888',
+    celular2: 'N/A',
+    numeroPedido: 'HIST-002',
     ubicacion: 'Av. América #555',
+    direccion: 'Salón de Eventos "El Paraíso", Av. América #555',
     fecha: '12/09/2024',
-    detalle: [ { cant: 2, item: 'Carpas Grandes' }, { cant: 150, item: 'Sillas' } ],
+    fechaEntrega: '11/09/2024',
+    fechaRecojo: '12/09/2024',
+    garantia: false,
+    granTotal: 450,
+    detalle: [ 
+      { cant: 2, item: 'Carpas Grandes', precioUnitario: 150, total: 300 }, 
+      { cant: 150, item: 'Sillas', precioUnitario: 1, total: 150 }
+    ],
   },
 ]);
 
-// ===== ADICIÓN: Funciones para manejar la lógica del modal =====
 const abrirModal = (alquiler) => {
   alquilerSeleccionado.value = alquiler;
   modalVisible.value = true;
@@ -110,19 +140,17 @@ const guardarAlquiler = (alquilerEditado) => {
 </script>
 
 <style scoped>
+/* Tu CSS no necesita cambios */
 .historial-container {
   padding: 2rem;
   background-color: #f0f2f5;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 }
-
 .main-title {
   text-align: center;
   color: #000;
   margin-bottom: 2rem;
   font-weight: 600;
 }
-
 .search-bar {
   display: flex;
   gap: 1rem;
@@ -131,7 +159,6 @@ const guardarAlquiler = (alquilerEditado) => {
   margin-left: auto;
   margin-right: auto;
 }
-
 .search-input-wrapper {
   flex-grow: 1;
   display: flex;
@@ -141,11 +168,6 @@ const guardarAlquiler = (alquilerEditado) => {
   border-radius: 8px;
   padding: 0 0.75rem;
 }
-
-.search-input-wrapper i {
-  color: #888;
-}
-
 .search-input-wrapper input {
   width: 100%;
   border: none;
@@ -153,7 +175,6 @@ const guardarAlquiler = (alquilerEditado) => {
   padding: 0.75rem 0.5rem;
   font-size: 1rem;
 }
-
 .filter-btn {
   display: flex;
   align-items: center;
@@ -163,20 +184,10 @@ const guardarAlquiler = (alquilerEditado) => {
   border-radius: 8px;
   padding: 0.75rem 1rem;
   cursor: pointer;
-  font-size: 1rem;
-  transition: background-color 0.2s;
-  justify-content: center;
 }
-
 .filter-btn img {
   height: 23px;
-  align-items: center;
 }
-
-.filter-btn:hover {
-  background-color: #f7f7f7;
-}
-
 .historial-card {
   background: white;
   border-radius: 12px;
@@ -186,20 +197,17 @@ const guardarAlquiler = (alquilerEditado) => {
   display: flex;
   gap: 2rem;
 }
-
 .card-content {
   flex: 1.2;
   display: flex;
   flex-direction: column;
 }
-
 .card-details {
   flex: 1.5;
   border-left: 1px solid #eee;
   border-right: 1px solid #eee;
   padding: 0 2rem;
 }
-
 .card-actions {
   flex: 0.8;
   display: flex;
@@ -207,23 +215,6 @@ const guardarAlquiler = (alquilerEditado) => {
   justify-content: center;
   gap: 0.75rem;
 }
-
-.fw-semibold {
-  font-weight: 600;
-}
-
-.text-muted {
-  color: #6c757d;
-}
-
-.small {
-  font-size: 0.9rem;
-}
-
-.mt-auto {
-  margin-top: auto;
-}
-
 .btn {
   border: none;
   border-radius: 8px;
@@ -235,87 +226,26 @@ const guardarAlquiler = (alquilerEditado) => {
   justify-content: center;
   gap: 0.5rem;
   font-weight: 600;
-  font-size: 0.95rem;
-  transition: opacity 0.2s;
 }
-
-.btn:hover {
-  opacity: 0.85;
-}
-
-.btn-edit {
-  background-color: #00BCD4;
-}
-
-.btn-edit:hover {
-  background-color: #00BCD4;
-}
-
-.btn-delete {
-  background-color: #E53935;
-}
-
-.btn-delete:hover {
-  background-color: #E53935;
-}
-
+.btn-edit { background-color: #00BCD4; }
+.btn-delete { background-color: #E53935; }
+.btn-revisar { background-color: #2ABB68; }
 .btn-edit img,
-.btn-delete img {
+.btn-delete img,
+.btn-revisar img {
   height: 23px;
 }
-/* Para los botones de "Editar" */
-.btn-edit:active,
-.btn-edit:focus {
-  background-color: #00BCD4 !important; 
-  border-color: #00BCD4 !important;
-  box-shadow: none !important;
+.btn-revisar:active,
+.btn-revisar:focus {
+  background-color: #2ABB68 !important; 
+  border-color: #2ABB68 !important;
+  box-shadow: none !important; 
 }
-
-/* Para los botones de "Borrar" */
-.btn-delete:active,
-.btn-delete:focus {
-  background-color: #E53935 !important; 
-  border-color: #E53935 !important;
-  box-shadow: none !important;
-}
-
-.row {
-  display: flex;
-  flex-wrap: wrap;
-}
-
-.col-4 {
-  flex: 0 0 auto;
-  width: 33.33333333%;
-}
-
-.col-8 {
-  flex: 0 0 auto;
-  width: 66.66666667%;
-}
-
-/* ===== NUEVO: ESTILOS RESPONSIVOS PARA LA PÁGINA ===== */
 @media (max-width: 768px) {
-  .historial-container {
-    padding: 1rem; /* Menos padding en móvil */
-  }
-  .search-bar {
-    flex-direction: column; /* Apila el buscador y el filtro */
-  }
-  .historial-card {
-    flex-direction: column; /* Apila las secciones de la tarjeta */
-    gap: 1rem;
-  }
-  .card-details {
-    padding: 1rem 0; /* Ajusta el padding */
-    border-left: none;
-    border-right: none;
-    border-top: 1px solid #eee;
-    border-bottom: 1px solid #eee;
-  }
-  .card-actions {
-    flex-direction: row; /* Botones en fila en móvil */
-    justify-content: center;
-  }
+  .historial-container { padding: 1rem; }
+  .search-bar { flex-direction: column; }
+  .historial-card { flex-direction: column; gap: 1rem; }
+  .card-details { padding: 1rem 0; border-left: none; border-right: none; border-top: 1px solid #eee; border-bottom: 1px solid #eee; }
+  .card-actions { flex-direction: row; justify-content: center; }
 }
 </style>

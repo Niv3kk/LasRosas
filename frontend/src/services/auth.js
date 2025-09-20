@@ -1,13 +1,9 @@
-import axios from 'axios'
+// src/services/auth.js
+import { ref } from 'vue';
 
-const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE || '',
-  withCredentials: true,
-  headers: { 'Content-Type': 'application/json' },
-})
-
-export async function login({ username, password }) {
-  // Ajusta la ruta según tu backend (/api/login, /accounts/login/, etc.)
-  const { data } = await api.post('/api/login', { username, password })
-  return data
-}
+// Esta variable reactiva guardará la información del usuario actual.
+// Más adelante, la actualizarás cuando el usuario inicie sesión.
+export const usuarioActual = ref({
+  nombre: 'USUARIO DE PRUEBA',
+  rol: 'Propietaria' // Puedes cambiarlo a 'Propietaria' para probar
+});

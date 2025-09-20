@@ -14,6 +14,7 @@
         <span class="alt">Pedidos Por Recoger</span>
       </h2>
     </div>
+    
 
     <div class="card card-soft mb-3 p-4" v-for="p in pedidosFiltrados" :key="p.numeroPedido">
       <div class="row g-0 align-items-center">
@@ -54,23 +55,38 @@
     <DetallePedidoModal 
       v-if="modalVisible" 
       :pedido="pedidoSeleccionado"
+      :vista="vistaActiva" 
       @cerrar="cerrarModal"
       @borrar="borrarPedido"
       @guardar="guardarPedidoEditado"
+      @entregar="entregarPedido"
+      @recoger="recogerPedido"
+    />
+
+    <button v-if="usuarioActual.rol === 'Propietaria'" class="btn-crear-alquiler" @click="abrirCrearModal">
+      <i class="bi bi-plus-lg"></i>
+      <span>Crear Alquiler</span>
+    </button>
+    
+    <CrearAlquilerModal
+      v-if="crearModalVisible"
+      :vista="vistaActiva"
+      @cerrar="cerrarCrearModal"
+      @guardar="guardarNuevoAlquiler"
     />
   </div>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue';
+// Nota: Asegúrate de que esta ruta a tu store sea correcta.
+// Si tu carpeta se llama 'store', la ruta es '@/store/auth.js'
+import { usuarioActual } from '@/services/auth.js';
 import DetallePedidoModal from '@/components/DetallePedidoModal.vue';
+import CrearAlquilerModal from '@/components/CrearAlquilerModal.vue';
 
-// --- ESTADO DE LA VISTA ---
+// --- ESTADO DE LA VISTA (TABS) ---
 const vistaActiva = ref('pendientes');
-
-// --- ESTADO DEL MODAL ---
-const modalVisible = ref(false);
-const pedidoSeleccionado = ref(null);
 
 // --- DATOS DE EJEMPLO ---
 const pedidosPendientes = ref([
@@ -119,12 +135,17 @@ const pedidosPorRecoger = ref([
   },
 ]);
 
+// --- ESTADO DE LOS MODALES ---
+const modalVisible = ref(false); // Para ver/editar
+const pedidoSeleccionado = ref(null);
+const crearModalVisible = ref(false); // Para crear
+
 // --- LÓGICA DE FILTRADO ---
 const pedidosFiltrados = computed(() => {
   return vistaActiva.value === 'pendientes' ? pedidosPendientes.value : pedidosPorRecoger.value;
 });
 
-// --- FUNCIONES DEL MODAL ---
+// --- FUNCIONES PARA MODAL DE DETALLES/EDICIÓN ---
 const abrirModal = (pedido) => {
   pedidoSeleccionado.value = pedido;
   modalVisible.value = true;
@@ -135,7 +156,6 @@ const cerrarModal = () => {
   pedidoSeleccionado.value = null;
 };
 
-// --- FUNCIONES PARA BORRAR Y GUARDAR ---
 const borrarPedido = (idPedido) => {
   if (confirm('¿Estás seguro de que quieres borrar este pedido?')) {
     if (vistaActiva.value === 'pendientes') {
@@ -162,10 +182,60 @@ const guardarPedidoEditado = (pedidoEditado) => {
     pedidosPorRecoger.value = actualizarLista(pedidosPorRecoger.value);
   }
   
-  // Cerramos el modal después de guardar
+  cerrarModal();
+};
+
+// --- FUNCIONES PARA MODAL DE CREACIÓN ---
+const abrirCrearModal = () => {
+  crearModalVisible.value = true;
+};
+
+const cerrarCrearModal = () => {
+  crearModalVisible.value = false;
+};
+
+const guardarNuevoAlquiler = (nuevoPedido) => {
+  // Le asignamos los datos que faltan (ID, N°, fecha y hora)
+  nuevoPedido.id = `pedido_${Date.now()}`;
+  nuevoPedido.numeroPedido = String(Math.floor(Math.random() * 10000));
+  const hoy = new Date();
+  nuevoPedido.fecha = hoy.toLocaleDateString('es-ES');
+  nuevoPedido.hora = hoy.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+
+  // ===== LÓGICA ACTUALIZADA =====
+  // Verificamos qué pestaña está activa y guardamos en la lista correcta
+  if (vistaActiva.value === 'pendientes') {
+    pedidosPendientes.value.unshift(nuevoPedido);
+  } else {
+    pedidosPorRecoger.value.unshift(nuevoPedido);
+  }
+  
+  // Cerramos el modal de creación
+  cerrarCrearModal();
+};
+// ===== NUEVAS FUNCIONES PARA LA PROPIETARIA =====
+const entregarPedido = (pedidoAEntregar) => {
+  // 1. Quitar de la lista de pendientes
+  pedidosPendientes.value = pedidosPendientes.value.filter(p => p.numeroPedido !== pedidoAEntregar.numeroPedido);
+  
+  // 2. Añadir a la lista por recoger
+  pedidosPorRecoger.value.unshift(pedidoAEntregar);
+
+  // 3. Cerrar el modal
+  cerrarModal();
+};
+
+const recogerPedido = (pedidoARecoger) => {
+  // 1. Quitar de la lista por recoger (se considera completado)
+  pedidosPorRecoger.value = pedidosPorRecoger.value.filter(p => p.numeroPedido !== pedidoARecoger.numeroPedido);
+  
+  // (Aquí podrías añadirlo a una lista de historial si quisieras)
+
+  // 2. Cerrar el modal
   cerrarModal();
 };
 </script>
+
 <style scoped>
 /* Tu CSS se mantiene exactamente igual, no necesita cambios */
 .section-title {
@@ -211,6 +281,40 @@ img {
   border-color: #2ABB68 !important;
   box-shadow: none !important; 
 }
+/* ===== ACTUALIZACIÓN 3: Estilo completo para el botón flotante ===== */
+.btn-crear-alquiler {
+  position: fixed; /* Lo saca del flujo normal del documento */
+  bottom: 2rem;    /* Lo posiciona a 2rem del borde inferior */
+  right: 2rem;     /* Lo posiciona a 2rem del borde derecho */
+  z-index: 100;    /* Se asegura de que esté por encima de otro contenido */
+  
+  background-color: #1B4F86; /* Tu color azul oscuro */
+  color: white;
+  border: none;
+  border-radius: 10px; /* Lo hace redondeado (forma de píldora) */
+  padding: 0.8rem 1.5rem;
+  font-weight: 600;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  transition: all 0.2s ease-in-out;
+}
+.btn-crear-alquiler:hover {
+  transform: scale(1.05); /* Un pequeño efecto al pasar el mouse */
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+}
+.btn-crear-alquiler i {
+  font-size: 1.2rem;
+}
 
-
+/* Ajuste responsivo para que no esté tan pegado a los bordes en móviles */
+@media (max-width: 768px) {
+  .btn-crear-alquiler {
+    bottom: 1rem;
+    right: 1rem;
+  }
+}
 </style>

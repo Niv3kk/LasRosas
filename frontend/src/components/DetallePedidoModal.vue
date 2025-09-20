@@ -21,7 +21,7 @@
           Fecha de recojo: <strong>{{ pedido.fechaRecojo }}</strong>
         </div>
         <div class="table-scroll-wrapper">
-          <table class="modal-table">
+          <table class="modal-table responsive-table">
             <thead>
               <tr>
                 <th>Cant.</th>
@@ -32,10 +32,10 @@
             </thead>
             <tbody>
               <tr v-for="(item, idx) in pedido.detalle" :key="idx">
-                <td class="text-center">{{ item.cant }}</td>
-                <td>{{ item.item }}</td>
-                <td class="text-end">{{ item.precioUnitario }} Bs.</td>
-                <td class="text-end fw-bold">{{ item.total }} Bs.</td>
+                <td data-label="Cant." class="text-center">{{ item.cant }}</td>
+                <td data-label="Detalle">{{ item.item }}</td>
+                <td data-label="P/Unit" class="text-end">{{ item.precioUnitario }} Bs.</td>
+                <td data-label="Total" class="text-end fw-bold">{{ item.total }} Bs.</td>
               </tr>
             </tbody>
           </table>
@@ -52,20 +52,33 @@
         <div class="direccion">
           Dirección: <strong>{{ pedido.direccion }}</strong>
         </div>
+        
         <div class="modal-actions">
-          <button class="btn btn-edit" @click="entrarModoEdicion">
-            <span>Editar</span>
-            <img src="@/assets/Edit.png" alt="editar">
-          </button>
-          <button class="btn btn-delete" @click="$emit('borrar', pedido.numeroPedido)">
-            <span>Borrar</span>
-            <img src="@/assets/Delete.png" alt="borrar">
-          </button>
+          <template v-if="usuarioActual.rol === 'Administrador'">
+            <button class="btn btn-edit" @click="entrarModoEdicion">
+              <span>Editar</span><img src="@/assets/Edit.png" alt="editar">
+            </button>
+            <button class="btn btn-delete" @click="$emit('borrar', pedido.numeroPedido)">
+              <span>Borrar</span><img src="@/assets/Delete.png" alt="borrar">
+            </button>
+          </template>
+
+          <template v-else-if="usuarioActual.rol === 'Propietaria'">
+            <button v-if="vista === 'pendientes'" class="btn btn-entregar" @click="$emit('entregar', pedido)">
+              Entregar
+              <img src="@/assets/Check.png" alt="check">
+            </button>
+            <button v-if="vista === 'porRecoger'" class="btn btn-recoger" @click="$emit('recoger', pedido)">
+              Recoger
+              <img src="@/assets/Check.png" alt="check">
+
+            </button>
+          </template>
         </div>
       </div>
 
       <div v-else class="modal-body">
-         <div class="modal-header-info editable-section">
+        <div class="modal-header-info editable-section">
           <div>
             <label>Pedido de:</label>
             <input type="text" v-model="pedidoEditable.cliente">
@@ -82,7 +95,7 @@
           </div>
         </div>
         <div class="table-scroll-wrapper">
-          <table class="modal-table">
+          <table class="modal-table responsive-table">
             <thead>
               <tr>
                 <th>Cant.</th>
@@ -93,16 +106,16 @@
             </thead>
             <tbody>
               <tr v-for="(item, idx) in pedidoEditable.detalle" :key="idx">
-                <td><input class="input-table text-center" type="number" v-model="item.cant" @input="actualizarTotales"></td>
-                <td><input class="input-table" type="text" v-model="item.item"></td>
-                <td><input class="input-table text-end" type="number" v-model="item.precioUnitario" @input="actualizarTotales"></td>
-                <td class="text-end fw-bold">{{ item.total }} Bs.</td>
+                <td data-label="Cant."><input class="input-table" type="number" v-model="item.cant" @input="actualizarTotales"></td>
+                <td data-label="Detalle"><input class="input-table" type="text" v-model="item.item"></td>
+                <td data-label="P/Unit"><input class="input-table" type="number" v-model="item.precioUnitario" @input="actualizarTotales"></td>
+                <td data-label="Total" class="text-end fw-bold">{{ item.total }} Bs.</td>
               </tr>
             </tbody>
           </table>
         </div>
         <div class="modal-footer-info">
-          <div class="garantia">
+           <div class="garantia">
             <input type="checkbox" id="garantia_edit" v-model="pedidoEditable.garantia">
             <label for="garantia_edit">Garantía:</label>
           </div>
@@ -125,19 +138,23 @@
 
 <script setup>
 import { ref } from 'vue';
+// 1. Importamos el usuario actual para verificar el rol
+import { usuarioActual } from '@/services/auth.js';
 
+// 2. Añadimos la nueva prop 'vista'
 const props = defineProps({
-  pedido: { type: Object, required: true }
+  pedido: { type: Object, required: true },
+  vista: { type: String, required: true } // 'pendientes' o 'porRecoger'
 });
 
-const emit = defineEmits(['cerrar', 'borrar', 'guardar']);
+// 3. Añadimos los nuevos eventos que el modal puede emitir
+const emit = defineEmits(['cerrar', 'borrar', 'guardar', 'entregar', 'recoger']);
 
+// --- (El resto de tu script no necesita cambios) ---
 const enModoEdicion = ref(false);
 const pedidoEditable = ref(null);
 
-// CAMBIO 1: Nueva función para manejar el clic en el overlay
 const onOverlayClick = () => {
-  // Si NO estamos en modo edición, entonces cerramos el modal
   if (!enModoEdicion.value) {
     emit('cerrar');
   }
@@ -268,6 +285,23 @@ const actualizarTotales = () => {
   background-color: #757575 !important;
   border-color: #757575 !important;
   box-shadow:none !important;
+}
+/* ===== NUEVO: ESTILOS PARA LOS BOTONES DE LA PROPIETARIA ===== */
+.btn-entregar {
+  background-color: #2ABB68; /* Morado */
+}
+.btn-recoger {
+  background-color: #304AA6; /* Naranja */
+}
+.btn-entregar{
+  background-color: #2ABB68 !important; 
+  border-color: #2ABB68 !important;
+  box-shadow: none !important;
+}
+.btn-recoger{
+  background-color: #304AA6 !important; 
+  border-color: #304AA6 !important;
+  box-shadow: none !important;
 }
 
 /* ===== SECCIÓN RESPONSIVA ACTUALIZADA ===== */

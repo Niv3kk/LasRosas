@@ -26,13 +26,13 @@
         </table>
       </div>
 
-      <div class="actions-container">
+      <div class="actions-container" v-if="usuarioActual.rol === 'Administrador'">
         <button class="btn btn-edit" @click="abrirModal">
           <span>Editar</span>
           <img src="@/assets/Edit.png" alt="editar">
         </button>
       </div>
-    </div>
+      </div>
     
     <EditarInventarioModal
       v-if="modalVisible"
@@ -45,35 +45,28 @@
 
 <script setup>
 import { ref } from 'vue';
-// ===== ADICIÓN: Importar el nuevo componente =====
+// ===== 1. SE IMPORTA EL USUARIO ACTUAL PARA VERIFICAR EL ROL =====
+import { usuarioActual } from '@/services/auth.js';
 import EditarInventarioModal from '@/components/EditarInventarioModal.vue';
 
-// ===== ADICIÓN: Variables para controlar el modal =====
 const modalVisible = ref(false);
 
-// Datos de ejemplo (sin cambios)
 const inventario = ref([
   { id: 1, cantidad: 325, detalle: 'Sillas', stockInicial: 350, salidas: 25, total: 325 },
   { id: 2, cantidad: 8, detalle: 'Mesas rectangular de plastico', stockInicial: 10, salidas: 2, total: 8 },
-  // ... resto de tus datos ...
 ]);
 
-// ===== ADICIÓN: Funciones para manejar la lógica del modal =====
 const abrirModal = () => {
   modalVisible.value = true;
 };
-
 const cerrarModal = () => {
   modalVisible.value = false;
 };
-
 const guardarInventario = (inventarioEditado) => {
-  // Reemplazamos la lista original con la lista editada que viene del modal
   inventario.value = inventarioEditado;
   cerrarModal();
 };
 </script>
-
 <style scoped>
 /* Contenedor principal de la página de inventario */
 .inventario-container {
