@@ -5,5 +5,5 @@ import { ref } from 'vue';
 // Más adelante, la actualizarás cuando el usuario inicie sesión.
 export const usuarioActual = ref({
   nombre: 'USUARIO DE PRUEBA',
-  rol: 'Propietaria' // Puedes cambiarlo a 'Propietaria' para probar
+  rol: 'Administrador' // Puedes cambiarlo a 'Propietaria' para probar
 });
