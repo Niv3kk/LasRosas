@@ -38,7 +38,7 @@
               <span>Editar</span>
               <img src="@/assets/Edit.png" alt="editar" />
             </button>
-            <button class="btn btn-delete" @click="abrirModal(alquiler)">
+            <button class="btn btn-delete" @click="solicitarBorrado(alquiler)">
               <span>Borrar</span>
               <img src="@/assets/Delete.png" alt="eliminar" />
             </button>
@@ -59,7 +59,7 @@
       :alquiler="alquilerSeleccionado"
       :rol="usuarioActual.rol"
       @cerrar="cerrarModal"
-      @borrar="borrarAlquiler"
+      @borrar="borrarAlquilerDesdeModal"
       @guardar="guardarAlquiler" 
     />
   </main>
@@ -73,7 +73,6 @@ import EditarAlquilerModal from '@/components/EditarAlquilerModal.vue';
 const modalVisible = ref(false);
 const alquilerSeleccionado = ref(null);
 
-// ===== DATOS DE EJEMPLO ACTUALIZADOS Y ENRIQUECIDOS =====
 const historiales = ref([
   {
     id: 1,
@@ -113,6 +112,7 @@ const historiales = ref([
   },
 ]);
 
+// Función para abrir el modal (para Editar y Revisar)
 const abrirModal = (alquiler) => {
   alquilerSeleccionado.value = alquiler;
   modalVisible.value = true;
@@ -123,11 +123,17 @@ const cerrarModal = () => {
   alquilerSeleccionado.value = null;
 };
 
-const borrarAlquiler = (idAlquiler) => {
-  if (confirm('¿Estás seguro de que quieres borrar este registro del historial?')) {
-    historiales.value = historiales.value.filter(h => h.id !== idAlquiler);
-    cerrarModal();
+// ===== ACTUALIZACIÓN: Nueva función para borrar desde la tarjeta =====
+const solicitarBorrado = (alquilerABorrar) => {
+  if (confirm(`¿Estás seguro de que quieres borrar el historial de "${alquilerABorrar.cliente}"?`)) {
+    historiales.value = historiales.value.filter(h => h.id !== alquilerABorrar.id);
   }
+};
+
+// Función para borrar desde DENTRO del modal
+const borrarAlquilerDesdeModal = (idAlquiler) => {
+  historiales.value = historiales.value.filter(h => h.id !== idAlquiler);
+  cerrarModal();
 };
 
 const guardarAlquiler = (alquilerEditado) => {
@@ -138,7 +144,6 @@ const guardarAlquiler = (alquilerEditado) => {
   cerrarModal();
 };
 </script>
-
 <style scoped>
 /* Tu CSS no necesita cambios */
 .historial-container {
@@ -184,6 +189,7 @@ const guardarAlquiler = (alquilerEditado) => {
   border-radius: 8px;
   padding: 0.75rem 1rem;
   cursor: pointer;
+  justify-content: center;
 }
 .filter-btn img {
   height: 23px;
@@ -234,6 +240,18 @@ const guardarAlquiler = (alquilerEditado) => {
 .btn-delete img,
 .btn-revisar img {
   height: 23px;
+}
+.btn-edit:active,
+.btn-edit:focus {
+  background-color: #00BCD4 !important; 
+  border-color: #00BCD4 !important;
+  box-shadow: none !important; 
+}
+.btn-delete:active,
+.btn-delete:focus {
+  background-color: #E53935 !important; 
+  border-color: #E53935 !important;
+  box-shadow: none !important; 
 }
 .btn-revisar:active,
 .btn-revisar:focus {
