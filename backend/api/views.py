@@ -1,4 +1,3 @@
-# backend/api/views.py
 from django.http import JsonResponse
 from django.db import connection
 
