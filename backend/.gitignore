@@ -1,0 +1,45 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+env/
+.venv/
+.env/
+
+# Environment variables
+*.env
+
+# Django / Flask / FastAPI specific
+*.log
+*.pot
+*.pyc
+db.sqlite3
+instance/
+migrations/__pycache__/
+
+# VSCode / IDE settings
+.vscode/
+.idea/
+*.swp
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Dependencies
+*.egg-info/
+dist/
+build/
+
+# Coverage / testing
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Custom project files
+backend/__pycache__/
+backend/api/__pycache__/
+backend/core/__pycache__/
