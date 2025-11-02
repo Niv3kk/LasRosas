@@ -10,7 +10,6 @@ env/
 .env/
 
 # Environment variables
-*.env
 
 # Django / Flask / FastAPI specific
 *.log
