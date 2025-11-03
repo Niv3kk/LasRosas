@@ -27,3 +27,7 @@ npm run dev
 ```sh
 npm run build
 ```
+<!-- intalar axios
+
+npm install axios 
+-->

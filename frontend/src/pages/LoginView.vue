@@ -11,19 +11,29 @@
         <form @submit.prevent="onSubmit" novalidate class="text-start">
           <div class="mb-3">
             <label class="form-label">Usuario</label>
-            <input v-model.trim="form.username" type="text"
-                   class="form-control input-soft"
-                   :class="{ 'is-invalid': errors.username }"
-                   placeholder="Usuario" autocomplete="username" required />
+            <input
+              v-model.trim="form.username"
+              type="text"
+              class="form-control input-soft"
+              :class="{ 'is-invalid': errors.username }"
+              placeholder="Usuario"
+              autocomplete="username"
+              required
+            />
             <div v-if="errors.username" class="field-hint invalid">{{ errors.username }}</div>
           </div>
 
           <div class="mb-4">
             <label class="form-label">Contraseña</label>
-            <input v-model.trim="form.password" type="password"
-                   class="form-control input-soft"
-                   :class="{ 'is-invalid': errors.password }"
-                   placeholder="Contraseña" autocomplete="current-password" required />
+            <input
+              v-model.trim="form.password"
+              type="password"
+              class="form-control input-soft"
+              :class="{ 'is-invalid': errors.password }"
+              placeholder="Contraseña"
+              autocomplete="current-password"
+              required
+            />
             <div v-if="errors.password" class="field-hint invalid">{{ errors.password }}</div>
           </div>
 
@@ -36,39 +46,52 @@
         </form>
       </div>
     </div>
-  </div>    
+  </div>
 </template>
 
 <script setup>
-import { reactive, ref } from 'vue'
-// import { login } from '@/services/auth' // conecta luego
+import { reactive, ref } from "vue";
+import { login } from "@/services/auth";
+import { useRouter } from "vue-router";
 
-const form = reactive({ username: '', password: '' })
-const errors = reactive({ username: '', password: '', _: '' })
-const loading = ref(false)
+const router = useRouter();
+
+const form = reactive({
+  username: "",
+  password: "",
+});
+
+const errors = reactive({
+  username: "",
+  password: "",
+  _: "", // error general
+});
+
+const loading = ref(false);
 
 function validate() {
-  errors.username = form.username ? '' : 'El usuario es obligatorio'
-  errors.password = form.password ? '' : 'La contraseña es obligatoria'
-  return !errors.username && !errors.password
+  errors.username = form.username ? "" : "Ingresa tu usuario";
+  errors.password = form.password ? "" : "Ingresa tu contraseña";
+  return !errors.username && !errors.password;
 }
 
 async function onSubmit() {
-  errors._ = ''
-  if (!validate()) return
+  errors._ = "";
+  if (!validate()) return;
+
+  loading.value = true;
   try {
-    loading.value = true
-    const data = await login({ username: form.username, password: form.password })
-    // TODO: guarda usuario/token y redirige a dashboard
-    console.log('LOGIN OK:', data)
-    window.location.href = '/dashboard'
+    await login({ username: form.username, password: form.password });
+    router.push({ name: "inicio" });
   } catch (e) {
-    errors._ = e?.response?.data?.detail || 'Usuario o contraseña incorrectos.'
+    // Mensaje desde backend o genérico
+    errors._ = e?.message || "No se pudo iniciar sesión";
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
 </script>
+
 
 <style scoped>
 /* ===== Paleta ===== */

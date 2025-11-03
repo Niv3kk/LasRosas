@@ -1,62 +1,94 @@
 // src/router/index.js
-import { createRouter, createWebHistory } from 'vue-router'
-import DashboardLayout from '@/components/layout/DashboardLayout.vue'
-
-// Helper de “sesión” temporal mientras no conectas backend
-function isLoggedIn() {
-  return localStorage.getItem('logged') === '1'
-}
+import { createRouter, createWebHistory } from "vue-router";
+import DashboardLayout from "@/components/layout/DashboardLayout.vue";
+import { isAuthenticated, me, getUser, userRole } from "@/services/auth";
 
 const router = createRouter({
   history: createWebHistory(),
-  scrollBehavior() {
-    // Siempre arriba al cambiar de ruta
-    return { top: 0 }
-  },
+  scrollBehavior() { return { top: 0 }; },
   routes: [
-    // Arranque: manda al login
-    { path: '/', redirect: { name: 'login' } },
+    { path: "/", redirect: { name: "login" } },
 
-    // Login (ruta pública, fuera del layout)
+    // Público (no autenticado)
     {
-      path: '/login',
-      name: 'login',
-      component: () => import('@/pages/LoginView.vue'),
+      path: "/login",
+      name: "login",
+      component: () => import("@/pages/LoginView.vue"),
       meta: { guestOnly: true },
     },
 
-    // Rutas autenticadas: usan el layout (navbar + sidebar)
+    // Autenticado (layout privado)
     {
-      path: '/app',
+      path: "/app",
       component: DashboardLayout,
       meta: { requiresAuth: true },
       children: [
-        { path: '', redirect: { name: 'inicio' } }, // /app → /app/inicio
-        { path: 'inicio', name: 'inicio', component: () => import('@/pages/InicioPage.vue') },
-        { path: 'historial-pedidos', name: 'historial-pedidos', component: () => import('@/pages/HistorialAquileresPage.vue') },
-        { path: 'inventario', name: 'inventario', component: () => import('@/pages/InventarioPage.vue') },
-        { path: 'lista-precios', name: 'lista-precios', component: () => import('@/pages/ListaPreciosPage.vue') },
-        { path: 'historial-inventario', name: 'historial-inventario', component: () => import('@/pages/HistorialInventarioPage.vue') },
-        { path: 'usuarios', name: 'usuarios', component: () => import('@/pages/UsuariosPage.vue') },
+        { path: "", redirect: { name: "inicio" } },
+        { path: "inicio", name: "inicio", component: () => import("@/pages/InicioPage.vue") },
+
+        // Abiertas para ambos roles (ejemplo)
+        { path: "historial-pedidos",   name: "historial-pedidos",   component: () => import("@/pages/HistorialAquileresPage.vue") },
+        { path: "inventario",          name: "inventario",          component: () => import("@/pages/InventarioPage.vue") },
+        { path: "lista-precios",       name: "lista-precios",       component: () => import("@/pages/ListaPreciosPage.vue") },
+        { path: "historial-inventario",name: "historial-inventario",component: () => import("@/pages/HistorialInventarioPage.vue") },
+
+        // SOLO Administrador
+        {
+          path: "usuarios",
+          name: "usuarios",
+          component: () => import("@/pages/UsuariosPage.vue"),
+          meta: { roles: ["Administrador"] },
+        },
+
+        // ejemplo de ruta SOLO Propietaria (si la tuvieras):
+        // { path: "reportes-propietaria", name:"reportes-propietaria", component: () => import("@/pages/ReportesPropietaria.vue"), meta: { roles: ["Propietaria"] } },
       ],
     },
 
-    // 404
-    { path: '/:pathMatch(.*)*', redirect: { name: 'login' } },
+    // 404 → login por ahora
+    { path: "/:pathMatch(.*)*", redirect: { name: "login" } },
   ],
-})
+});
 
-// // Guard global (simple y funcional para ahora)
-// router.beforeEach((to, from, next) => {
-//   if (to.meta?.requiresAuth && !isLoggedIn()) {
-//     // Si quiere ir a /app/* pero no está logueado → login
-//     return next({ name: 'login' })
-//   }
-//   if (to.meta?.guestOnly && isLoggedIn()) {
-//     // Si ya está logueado, evitar volver al login
-//     return next({ name: 'inicio' })
-//   }
-//   next()
-// })
+// -------- Guard global --------
+let meAttempted = false;
 
-export default router
+router.beforeEach(async (to, from, next) => {
+  const needsAuth = !!to.meta?.requiresAuth;
+  const guestOnly = !!to.meta?.guestOnly;
+
+  // 1) Si ya está autenticado y va a /login, redirige a /app
+  if (guestOnly && isAuthenticated()) {
+    return next({ name: "inicio" });
+  }
+
+  // 2) Si requiere auth y no hay token → login
+  if (needsAuth && !isAuthenticated()) {
+    return next({ name: "login" });
+  }
+
+  // 3) Si requiere auth y hay token pero no tenemos usuario en memoria,
+  //    intenta recuperar desde /me una sola vez (para rellenar rol)
+  if (needsAuth && isAuthenticated() && !getUser() && !meAttempted) {
+    meAttempted = true;
+    try {
+      await me(); // si falla, caerá al catch
+    } catch {
+      return next({ name: "login" });
+    }
+  }
+
+  // 4) Chequeo de roles por ruta (si la ruta define meta.roles)
+  const allowed = to.meta?.roles;
+  if (needsAuth && allowed?.length) {
+    const role = userRole(); // "Administrador" | "Propietaria" | null
+    if (!role || !allowed.includes(role)) {
+      // opcional: muestra notificación de "No autorizado"
+      return next({ name: "inicio" });
+    }
+  }
+
+  next();
+});
+
+export default router;

@@ -36,13 +36,15 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
-    # CORS (útil para el frontend en Vite)
-    'corsheaders',
-
-    # Tu app
-    'api',
+    'rest_framework',  # si ya instalaste DRF
+    'api.apps.ApiConfig',             # <--- asegúrate de tener esta línea
 ]
+
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [],
+    'DEFAULT_PERMISSION_CLASSES': [],
+}
 
 # =========================
 # MIDDLEWARE
