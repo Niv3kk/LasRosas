@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',  # si ya instalaste DRF
     'api.apps.ApiConfig',             # <--- asegúrate de tener esta línea
+    "corsheaders",
 ]
 
 

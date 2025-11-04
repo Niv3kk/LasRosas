@@ -1,80 +1,90 @@
 <template>
-  <div>
-    <div class="d-flex flex-column flex-md-row align-items-center mb-3">
-      <h2 
-        class="section-title mb-0 flex-grow-1"
-        :class="{ 'active-title': vistaActiva === 'pendientes' }"
-        @click="vistaActiva = 'pendientes'">
-        Pedidos Pendientes
-      </h2>
-      <h2 
-        class="section-title mb-0 flex-grow-1"
-        :class="{ 'active-title': vistaActiva === 'porRecoger' }"
-        @click="vistaActiva = 'porRecoger'">
-        <span class="alt">Pedidos Por Recoger</span>
-      </h2>
-    </div>
-    
-
-    <div class="card card-soft mb-3 p-4" v-for="p in pedidosFiltrados" :key="p.numeroPedido">
-      <div class="row g-0 align-items-center">
-        <div class="col-md-3">
-          <div class="fw-semibold">Pedido de: {{ p.cliente }}</div>
-          <div>Ubicación: {{ p.ubicacion }}</div>
-          <div class="mt-2 text-muted small">{{ p.fecha }}</div>
-          <div class="mt-2">
-            <span class="fw-semibold">Estado:</span>
-            <span class="badge" :class="p.pagado ? 'badge-success' : 'badge-danger'">
-              {{ p.pagado ? 'Pagado' : 'Por Pagar' }}
-            </span>
+  <template v-if="usuarioActual">
+    <div>
+      <div class="d-flex flex-column flex-md-row align-items-center mb-3">
+        <h2 
+          class="section-title mb-0 flex-grow-1"
+          :class="{ 'active-title': vistaActiva === 'pendientes' }"
+          @click="vistaActiva = 'pendientes'">
+          Pedidos Pendientes
+        </h2>
+        <h2 
+          class="section-title mb-0 flex-grow-1"
+          :class="{ 'active-title': vistaActiva === 'porRecoger' }"
+          @click="vistaActiva = 'porRecoger'">
+          <span class="alt">Pedidos Por Recoger</span>
+        </h2>
+      </div>
+      
+  
+      <div class="card card-soft mb-3 p-4" v-for="p in pedidosFiltrados" :key="p.numeroPedido">
+        <div class="row g-0 align-items-center">
+          <div class="col-md-3">
+            <div class="fw-semibold">Pedido de: {{ p.cliente }}</div>
+            <div>Ubicación: {{ p.ubicacion }}</div>
+            <div class="mt-2 text-muted small">{{ p.fecha }}</div>
+            <div class="mt-2">
+              <span class="fw-semibold">Estado:</span>
+              <span class="badge" :class="p.pagado ? 'badge-success' : 'badge-danger'">
+                {{ p.pagado ? 'Pagado' : 'Por Pagar' }}
+              </span>
+            </div>
           </div>
-        </div>
-        <div class="col-md-3 small detalles-borde">
-          <div class="row">
-            <div class="col-4 fw-semibold">Cant.</div>
-            <div class="col-8 fw-semibold">Detalle</div>
-            <template v-for="(d, idx) in p.detalle" :key="idx">
-              <div class="col-4">{{ d.cant }}</div>
-              <div class="col-8">{{ d.item }}</div>
-            </template>
+          <div class="col-md-3 small detalles-borde">
+            <div class="row">
+              <div class="col-4 fw-semibold">Cant.</div>
+              <div class="col-8 fw-semibold">Detalle</div>
+              <template v-for="(d, idx) in p.detalle" :key="idx">
+                <div class="col-4">{{ d.cant }}</div>
+                <div class="col-8">{{ d.item }}</div>
+              </template>
+            </div>
           </div>
-        </div>
-        <div class="col-md-6 text-center">
-          <button class="btn btn-green" @click="abrirModal(p)">
-            Revisar
-            <img src="@/assets/Revisar.png" alt="Revisar pedido">
-          </button>
+          <div class="col-md-6 text-center">
+            <button class="btn btn-green" @click="abrirModal(p)">
+              Revisar
+              <img src="@/assets/Revisar.png" alt="Revisar pedido">
+            </button>
+          </div>
         </div>
       </div>
+  
+      <div v-if="pedidosFiltrados.length === 0" class="text-center text-muted mt-5">
+        <p>No hay pedidos en esta sección.</p>
+      </div>
+  
+      <DetallePedidoModal 
+        v-if="modalVisible" 
+        :pedido="pedidoSeleccionado"
+        :vista="vistaActiva" 
+        @cerrar="cerrarModal"
+        @borrar="borrarPedido"
+        @guardar="guardarPedidoEditado"
+        @entregar="entregarPedido"
+        @recoger="recogerPedido"
+      />
+  
+      <!-- Esta era la línea 66 que daba el error. Ahora está protegida por el v-if padre -->
+      <button v-if="usuarioActual.rol === 'Propietaria'" class="btn-crear-alquiler" @click="abrirCrearModal">
+        <i class="bi bi-plus-lg"></i>
+        <span>Crear Alquiler</span>
+      </button>
+      
+      <CrearAlquilerModal
+        v-if="crearModalVisible"
+        :vista="vistaActiva"
+        @cerrar="cerrarCrearModal"
+        @guardar="guardarNuevoAlquiler"
+      />
     </div>
+  </template>
 
-    <div v-if="pedidosFiltrados.length === 0" class="text-center text-muted mt-5">
-      <p>No hay pedidos en esta sección.</p>
+  <!-- Opcional: Mostrar un mensaje de "cargando" mientras 'usuarioActual' es null -->
+  <template v-else>
+    <div class="text-center p-5">
+      Cargando datos del usuario...
     </div>
-
-    <DetallePedidoModal 
-      v-if="modalVisible" 
-      :pedido="pedidoSeleccionado"
-      :vista="vistaActiva" 
-      @cerrar="cerrarModal"
-      @borrar="borrarPedido"
-      @guardar="guardarPedidoEditado"
-      @entregar="entregarPedido"
-      @recoger="recogerPedido"
-    />
-
-    <button v-if="usuarioActual.rol === 'Propietaria'" class="btn-crear-alquiler" @click="abrirCrearModal">
-      <i class="bi bi-plus-lg"></i>
-      <span>Crear Alquiler</span>
-    </button>
-    
-    <CrearAlquilerModal
-      v-if="crearModalVisible"
-      :vista="vistaActiva"
-      @cerrar="cerrarCrearModal"
-      @guardar="guardarNuevoAlquiler"
-    />
-  </div>
+  </template>
 </template>
 
 <script setup>

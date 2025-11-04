@@ -1,44 +1,52 @@
 <template>
   <aside class="sidebar">
     <nav class="menu">
+      <!-- Enlaces principales -->
       <RouterLink class="item" to="/app/inicio">
-        <img class="logos" src="@/assets/Inicio.png" alt="Inicio"/>
+        <img class="logos" src="@/assets/Inicio.png" alt="Inicio" />
         <span>Inicio</span>
       </RouterLink>
+
       <RouterLink class="item" to="/app/historial-pedidos">
-        <img class="logos" src="@/assets/HistorialPedido.png" alt="HistorialPedidos"/>
+        <img class="logos" src="@/assets/HistorialPedido.png" alt="HistorialPedidos" />
         <span>Historial de alquileres</span>
       </RouterLink>
+
       <RouterLink class="item" to="/app/inventario">
-        <img class="logos" src="@/assets/ControlInventario.png" alt="ControlInventario"/>
+        <img class="logos" src="@/assets/ControlInventario.png" alt="ControlInventario" />
         <span>Control de inventario</span>
       </RouterLink>
+
       <RouterLink class="item" to="/app/lista-precios">
-        <img class="logos" src="@/assets/ListaPrecio.png" alt="ListaPrecio"/>
+        <img class="logos" src="@/assets/ListaPrecio.png" alt="ListaPrecio" />
         <span>Lista de precios</span>
       </RouterLink>
 
-      <template v-if="usuarioActual.rol === 'Administrador'">
+      <!-- Sección solo para Administradores -->
+      <template v-if="usuarioActual?.rol?.nombre_rol === 'Administrador'">
         <RouterLink class="item" to="/app/historial-inventario">
-          <img class="logos" src="@/assets/HistorialInventario.png" alt="HistorialInventario"/>
+          <img class="logos" src="@/assets/HistorialInventario.png" alt="HistorialInventario" />
           <span>Historial de inventario</span>
         </RouterLink>
+
         <RouterLink class="item" to="/app/usuarios">
-          <img class="logos" src="@/assets/GestionUsuarios.png" alt="GestionUsuarios"/>
-          <span>Gestión de usuarios</span>  
+          <img class="logos" src="@/assets/GestionUsuarios.png" alt="GestionUsuarios" />
+          <span>Gestión de usuarios</span>
         </RouterLink>
       </template>
-      </nav>
+    </nav>
 
+    <!-- Información del usuario y botón de logout -->
     <div class="sidebar-bottom">
       <div class="user d-flex gap-2">
         <div class="avatar">{{ inicialesUsuario }}</div>
         <div>
-          <div class="user-name">{{ usuarioActual.nombre }}</div>
-          <div class="user-role">{{ usuarioActual.rol }}</div>
+          <div class="user-name">{{ usuarioActual?.nombre_completo }}</div>
+          <div class="user-role">{{ usuarioActual?.rol?.nombre_rol }}</div>
         </div>
       </div>
-      <button class="btn btn-outline-danger btn-sm w-100 mt-2">
+
+      <button @click="handleLogout" class="btn btn-outline-danger btn-sm w-100 mt-2">
         <i class="bi bi-box-arrow-right me-1"></i> Salir
       </button>
     </div>
@@ -47,18 +55,30 @@
 
 <script setup>
 import { computed } from 'vue';
-// 1. Se importa la variable reactiva del usuario
-import { usuarioActual } from '@/services/auth.js';
+import { useRouter } from 'vue-router';
+import { usuarioActual, logout } from '@/services/auth.js';
 
-// 2. (Opcional) Se crea una propiedad computada para las iniciales del avatar
+const router = useRouter();
+
+// Computar iniciales del usuario
 const inicialesUsuario = computed(() => {
-  const partes = usuarioActual.value.nombre.split(' ');
-  if (partes.length >= 2) {
-    return partes[0][0] + partes[1][0];
+  if (!usuarioActual.value?.nombre_completo) {
+    return "??";
   }
-  return usuarioActual.value.nombre.substring(0, 2);
+
+  const partes = usuarioActual.value.nombre_completo.split(' ');
+  return partes.length >= 2
+    ? (partes[0][0] + partes[1][0]).toUpperCase()
+    : usuarioActual.value.nombre_completo.substring(0, 2).toUpperCase();
 });
+
+// Función para cerrar sesión
+function handleLogout() {
+  logout();
+  router.push({ name: 'login' });
+}
 </script>
+
 
 <style scoped>
 .sidebar {

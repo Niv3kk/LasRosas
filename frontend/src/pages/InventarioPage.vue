@@ -1,46 +1,62 @@
 <template>
-  <main class="inventario-container">
-    <h1 class="main-title">Inventario</h1>
+  <!-- 
+    SOLUCIÓN:
+    Envolvemos todo el <main> en un <template v-if="usuarioActual">.
+    Esto soluciona el error de "timing" al asegurar que 'usuarioActual'
+    tenga datos antes de intentar leer 'usuarioActual.rol'.
+  -->
+  <template v-if="usuarioActual">
+    <main class="inventario-container">
+      <h1 class="main-title">Inventario</h1>
+  
+      <div class="table-container">
+        <div class="table-scroll-wrapper">
+          <table class="inventory-table responsive-table">
+            <thead>
+              <tr>
+                <th>Cant.</th>
+                <th>Detalle</th>
+                <th>Stock Inicial</th>
+                <th>Salidas</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="item in inventario" :key="item.id">
+                <td data-label="Cant." class="text-right">{{ item.cantidad }}</td>
+                <td data-label="Detalle">{{ item.detalle }}</td>
+                <td data-label="Stock Inicial" class="text-right">{{ item.stockInicial }}</td>
+                <td data-label="Salidas" class="text-right">{{ item.salidas }}</td>
+                <td data-label="Total" class="text-right fw-bold">{{ item.total }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+  
+        <!-- Esta línea ahora está protegida por el v-if padre -->
+        <div class="actions-container" v-if="usuarioActual.rol === 'Administrador'">
+          <button class="btn btn-edit" @click="abrirModal">
+            <span>Editar</span>
+            <img src="@/assets/Edit.png" alt="editar">
+          </button>
+        </div>
+        </div>
+      
+      <EditarInventarioModal
+        v-if="modalVisible"
+        :inventario="inventario"
+        @cerrar="cerrarModal"
+        @guardar="guardarInventario"
+      />
+    </main>
+  </template>
 
-    <div class="table-container">
-      <div class="table-scroll-wrapper">
-        <table class="inventory-table responsive-table">
-          <thead>
-            <tr>
-              <th>Cant.</th>
-              <th>Detalle</th>
-              <th>Stock Inicial</th>
-              <th>Salidas</th>
-              <th>Total</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="item in inventario" :key="item.id">
-              <td data-label="Cant." class="text-right">{{ item.cantidad }}</td>
-              <td data-label="Detalle">{{ item.detalle }}</td>
-              <td data-label="Stock Inicial" class="text-right">{{ item.stockInicial }}</td>
-              <td data-label="Salidas" class="text-right">{{ item.salidas }}</td>
-              <td data-label="Total" class="text-right fw-bold">{{ item.total }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div class="actions-container" v-if="usuarioActual.rol === 'Administrador'">
-        <button class="btn btn-edit" @click="abrirModal">
-          <span>Editar</span>
-          <img src="@/assets/Edit.png" alt="editar">
-        </button>
-      </div>
-      </div>
-    
-    <EditarInventarioModal
-      v-if="modalVisible"
-      :inventario="inventario"
-      @cerrar="cerrarModal"
-      @guardar="guardarInventario"
-    />
-  </main>
+  <!-- Opcional: Mensaje de carga mientras 'usuarioActual' es null -->
+  <template v-else>
+    <div class="text-center p-5">
+      Cargando inventario...
+    </div>
+  </template>
 </template>
 
 <script setup>
@@ -67,6 +83,7 @@ const guardarInventario = (inventarioEditado) => {
   cerrarModal();
 };
 </script>
+
 <style scoped>
 /* Contenedor principal de la página de inventario */
 .inventario-container {

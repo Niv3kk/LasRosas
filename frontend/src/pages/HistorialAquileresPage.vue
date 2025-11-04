@@ -1,68 +1,84 @@
 <template>
-  <main class="historial-container">
-    <h1 class="main-title">Historial de Alquileres</h1>
-
-    <div class="search-bar">
-      <div class="search-input-wrapper">
-        <i class="bi bi-search"></i>
-        <input type="text" placeholder="Buscar..." />
-      </div>
-      <button class="filter-btn">
-        <span>Filtrar</span>
-        <img src="@/assets/Filtro.png" alt="Filtrar" />
-      </button>
-    </div>
-
-    <div class="historial-list">
-      <div class="historial-card" v-for="alquiler in historiales" :key="alquiler.id">
-        <div class="card-content">
-          <div class="fw-semibold">Alquiler de: {{ alquiler.cliente }}</div>
-          <div>Ubicación: {{ alquiler.ubicacion }}</div>
-          <div class="text-muted small mt-auto">{{ alquiler.fecha }}</div>
+  <!-- 
+    SOLUCIÓN:
+    Envolvemos todo el <main> en un <template v-if="usuarioActual">.
+    Esto previene que se intente leer 'usuarioActual.rol' cuando
+    'usuarioActual' todavía es 'null', solucionando el error de "timing".
+  -->
+  <template v-if="usuarioActual">
+    <main class="historial-container">
+      <h1 class="main-title">Historial de Alquileres</h1>
+  
+      <div class="search-bar">
+        <div class="search-input-wrapper">
+          <i class="bi bi-search"></i>
+          <input type="text" placeholder="Buscar..." />
         </div>
-
-        <div class="card-details small">
-          <div class="row">
-            <div class="col-4 fw-semibold">Cant.</div>
-            <div class="col-8 fw-semibold">Detalle</div>
-            <template v-for="(item, index) in alquiler.detalle" :key="index">
-              <div class="col-4">{{ item.cant }}</div>
-              <div class="col-8">{{ item.item }}</div>
+        <button class="filter-btn">
+          <span>Filtrar</span>
+          <img src="@/assets/Filtro.png" alt="Filtrar" />
+        </button>
+      </div>
+  
+      <div class="historial-list">
+        <div class="historial-card" v-for="alquiler in historiales" :key="alquiler.id">
+          <div class="card-content">
+            <div class="fw-semibold">Alquiler de: {{ alquiler.cliente }}</div>
+            <div>Ubicación: {{ alquiler.ubicacion }}</div>
+            <div class="text-muted small mt-auto">{{ alquiler.fecha }}</div>
+          </div>
+  
+          <div class="card-details small">
+            <div class="row">
+              <div class="col-4 fw-semibold">Cant.</div>
+              <div class="col-8 fw-semibold">Detalle</div>
+              <template v-for="(item, index) in alquiler.detalle" :key="index">
+                <div class="col-4">{{ item.cant }}</div>
+                <div class="col-8">{{ item.item }}</div>
+              </template>
+            </div>
+          </div>
+  
+          <div class="card-actions">
+            <!-- Estas líneas ahora son seguras porque 'usuarioActual' existe -->
+            <template v-if="usuarioActual.rol === 'Administrador'">
+              <button class="btn btn-edit" @click="abrirModal(alquiler)">
+                <span>Editar</span>
+                <img src="@/assets/Edit.png" alt="editar" />
+              </button>
+              <button class="btn btn-delete" @click="solicitarBorrado(alquiler)">
+                <span>Borrar</span>
+                <img src="@/assets/Delete.png" alt="eliminar" />
+              </button>
+            </template>
+            
+            <template v-else-if="usuarioActual.rol === 'Propietaria'">
+              <button class="btn btn-revisar" @click="abrirModal(alquiler)">
+                <span>Revisar</span>
+                <img src="@/assets/Revisar.png" alt="revisar" />
+              </button>
             </template>
           </div>
         </div>
-
-        <div class="card-actions">
-          <template v-if="usuarioActual.rol === 'Administrador'">
-            <button class="btn btn-edit" @click="abrirModal(alquiler)">
-              <span>Editar</span>
-              <img src="@/assets/Edit.png" alt="editar" />
-            </button>
-            <button class="btn btn-delete" @click="solicitarBorrado(alquiler)">
-              <span>Borrar</span>
-              <img src="@/assets/Delete.png" alt="eliminar" />
-            </button>
-          </template>
-          
-          <template v-else-if="usuarioActual.rol === 'Propietaria'">
-            <button class="btn btn-revisar" @click="abrirModal(alquiler)">
-              <span>Revisar</span>
-              <img src="@/assets/Revisar.png" alt="revisar" />
-            </button>
-          </template>
-        </div>
       </div>
-    </div>
+  
+      <EditarAlquilerModal
+        v-if="modalVisible"
+        :alquiler="alquilerSeleccionado"
+        :rol="usuarioActual.rol" 
+        @cerrar="cerrarModal"
+        @borrar="borrarAlquilerDesdeModal"
+        @guardar="guardarAlquiler" 
+      />
+    </main>
+  </template>
 
-    <EditarAlquilerModal
-      v-if="modalVisible"
-      :alquiler="alquilerSeleccionado"
-      :rol="usuarioActual.rol"
-      @cerrar="cerrarModal"
-      @borrar="borrarAlquilerDesdeModal"
-      @guardar="guardarAlquiler" 
-    />
-  </main>
+  <!-- Opcional: Mensaje de carga mientras 'usuarioActual' es null -->
+  <template v-else>
+    <div class="text-center p-5">
+      Cargando historial...
+    </div>
+  </template>
 </template>
 
 <script setup>
@@ -144,6 +160,7 @@ const guardarAlquiler = (alquilerEditado) => {
   cerrarModal();
 };
 </script>
+
 <style scoped>
 /* Tu CSS no necesita cambios */
 .historial-container {
