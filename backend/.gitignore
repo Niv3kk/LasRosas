@@ -45,3 +45,4 @@ htmlcov/
 
 # Custom project files
 backend/**/__pycache__/
+backend/core/__pycache__/
