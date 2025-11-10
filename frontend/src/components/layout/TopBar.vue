@@ -15,44 +15,42 @@
 </template>
 
 <script setup>
-// 2. Definimos el evento que este componente puede emitir
+import logo from '@/assets/Rosa.png';
+
 defineEmits(['toggle-sidebar']);
-import logo from '@/assets/Rosa.png'
-const logoSrc = logo
+
+const logoSrc = logo;
 </script>
 
 <style scoped>
-.topbar{
-  height: 72px;
-  background: #c9434d;
-  color: #fff;
-  box-shadow: 0 2px 6px rgba(0,0,0,.15);
-  position: sticky; /* Importante para que se mantenga arriba */
-  top: 0;
-  z-index: 999;
-}
-.logo{ height: 48px; object-fit: contain; background-color: #D9D9D9;}
-.brand-title{ font-family: 'Great Vibes', cursive; font-size: 28px; line-height: 1; }
-.brand{ padding: 0px 25px; }
-.brand-subtitle{ font-size: 12px; margin-top: -2px; opacity: .9; }
+/* Las reglas de .topbar están en dashboard.css */
 
-/* ===== NUEVO: ESTILOS PARA EL BOTÓN HAMBURGUESA ===== */
-.hamburger-btn {
-  display: none; /* Oculto en PC por defecto */
-  background: none;
-  border: none;
-  color: white;
-  font-size: 2rem;
-  margin-right: 1rem;
-  cursor: pointer;
+.logo {
+  height: 48px;
+  object-fit: contain;
+  background-color: #D9D9D9;
 }
 
+.brand {
+  padding: 0px 25px;
+}
+
+.brand-title {
+  font-family: 'Great Vibes', cursive;
+  font-size: 28px;
+  line-height: 1;
+}
+
+.brand-subtitle {
+  font-size: 12px;
+  margin-top: -2px;
+  opacity: 0.9;
+}
+
+/* Estilo interno del botón hamburguesa */
 @media (max-width: 992px) {
-  .hamburger-btn {
-    display: block; /* Visible solo en móvil */
-  }
   .brand {
-    padding: 0px 10px; /* Reducimos el padding en móvil */
+    padding: 0px 10px;
   }
 }
 </style>

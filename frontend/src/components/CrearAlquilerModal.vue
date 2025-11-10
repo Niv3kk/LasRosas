@@ -2,26 +2,26 @@
   <div class="modal-overlay">
     <div class="modal-content" @click.stop>
       <h2 class="modal-title">Crear Nuevo Alquiler</h2>
-      
+
       <div class="form-scroll-wrapper">
         <fieldset class="form-section">
           <legend>Información del Cliente</legend>
           <div class="form-grid">
             <div>
               <label for="cliente">Nombre del Cliente:</label>
-              <input id="cliente" type="text" v-model="nuevoPedido.cliente" placeholder="Nombre completo">
+              <input id="cliente" type="text" v-model="nuevoPedido.cliente" placeholder="Nombre completo" />
             </div>
             <div>
               <label for="direccion">Dirección:</label>
-              <input id="direccion" type="text" v-model="nuevoPedido.direccion" placeholder="Ej: Av. Villazon Km2">
+              <input id="direccion" type="text" v-model="nuevoPedido.direccion" placeholder="Ej: Av. Villazon Km2" />
             </div>
             <div>
               <label for="celular1">Celular 1:</label>
-              <input id="celular1" type="text" v-model="nuevoPedido.celular1">
+              <input id="celular1" type="text" v-model="nuevoPedido.celular1" />
             </div>
             <div>
               <label for="celular2">Celular 2:</label>
-              <input id="celular2" type="text" v-model="nuevoPedido.celular2">
+              <input id="celular2" type="text" v-model="nuevoPedido.celular2" />
             </div>
           </div>
         </fieldset>
@@ -31,11 +31,11 @@
           <div class="form-grid">
             <div>
               <label for="fechaEntrega">Fecha de Entrega:</label>
-              <input id="fechaEntrega" type="date" v-model="nuevoPedido.fechaEntrega">
+              <input id="fechaEntrega" type="date" v-model="nuevoPedido.fechaEntrega" />
             </div>
             <div>
               <label for="fechaRecojo">Fecha de Recojo:</label>
-              <input id="fechaRecojo" type="date" v-model="nuevoPedido.fechaRecojo">
+              <input id="fechaRecojo" type="date" v-model="nuevoPedido.fechaRecojo" />
             </div>
           </div>
         </fieldset>
@@ -43,14 +43,24 @@
         <fieldset class="form-section">
           <legend>Detalle del Pedido</legend>
           <table class="modal-table">
-            <thead><tr><th>Cant.</th><th>Detalle</th><th>P/Unit</th><th>Total</th><th></th></tr></thead>
+            <thead>
+              <tr>
+                <th>Cant.</th>
+                <th>Detalle</th>
+                <th>P/Unit</th>
+                <th>Total</th>
+                <th></th>
+              </tr>
+            </thead>
             <tbody>
               <tr v-for="(item, index) in nuevoPedido.detalle" :key="index">
-                <td><input class="input-table" type="number" v-model="item.cant" @input="actualizarTotales"></td>
-                <td><input class="input-table" type="text" v-model="item.item"></td>
-                <td><input class="input-table" type="number" v-model="item.precioUnitario" @input="actualizarTotales"></td>
+                <td><input class="input-table" type="number" v-model="item.cant" @input="actualizarTotales" /></td>
+                <td><input class="input-table" type="text" v-model="item.item" /></td>
+                <td><input class="input-table" type="number" v-model="item.precioUnitario" @input="actualizarTotales" /></td>
                 <td class="text-right fw-bold">{{ item.total }} Bs.</td>
-                <td class="action-cell"><button class="btn-remove-item" @click="quitarItemDetalle(index)">-</button></td>
+                <td class="action-cell">
+                  <button class="btn-remove-item" @click="quitarItemDetalle(index)">-</button>
+                </td>
               </tr>
             </tbody>
           </table>
@@ -59,7 +69,7 @@
 
         <div class="footer-info">
           <div class="garantia">
-            <input type="checkbox" id="garantia" v-model="nuevoPedido.garantia">
+            <input type="checkbox" id="garantia" v-model="nuevoPedido.garantia" />
             <label for="garantia">Deja Garantía</label>
           </div>
           <div class="total-final">
@@ -81,7 +91,6 @@ import { ref } from 'vue';
 
 const emit = defineEmits(['cerrar', 'guardar']);
 
-// Función para inicializar un objeto de pedido vacío
 const inicializarPedido = () => ({
   cliente: '',
   ubicacion: '',
@@ -121,11 +130,12 @@ const guardar = () => {
     alert('Por favor, ingresa el nombre del cliente.');
     return;
   }
-  // Sincronizamos ubicacion con direccion antes de guardar
   nuevoPedido.value.ubicacion = nuevoPedido.value.direccion;
   emit('guardar', nuevoPedido.value);
 };
 </script>
+
+
 
 <style scoped>
 /* Estilos del modal optimizados */

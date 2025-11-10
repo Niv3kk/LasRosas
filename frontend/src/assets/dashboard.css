@@ -1,40 +1,99 @@
-/* raíz del layout */
-.dash-root{
+/* ============ GLOBAL ============ */
+html, body {
+  margin: 0 !important;
+  padding: 0 !important;
+  height: 100% !important;
+  overflow: hidden;                 /* << solo scrollea el contenido, no la página */
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background: #e9ebed;
+}
+
+.dash-root {
+  display: flex;
+  flex-direction: column;
   min-height: 100vh;
   background: #e9ebed;
 }
 
-/* fila horizontal: sidebar + contenido */
-.dash-body{
-  display: grid;
-  grid-template-columns: 260px 1fr; /* 260px de sidebar, el resto contenido */
-  min-height: calc(100vh - 72px);   /* 72px: alto del TopBar */
-}
-
-/* contenido a la derecha */
-.dash-content{
-  padding: 24px;
-  overflow: auto;
-  min-width: 0; /* evita que el grid “empuje” y pase abajo */
-}
-
-/* si quieres que el sidebar quede fijo al hacer scroll del contenido */
-.sidebar{
-  height: calc(100vh - 72px);
-  position: sticky;
-  top: 72px;
-  overflow: auto;
-  border-right: 1px solid #e3e3e3;
-  background: #ecf0f1;
-}
-
-/* barra superior (si no la tienes ya) */
-.topbar{
+/* ============ TOPBAR ============ */
+.topbar {
+  position: fixed;                  /* << Fija la barra arriba */
+  top: 0; left: 0; right: 0;
   height: 72px;
   background: #c9434d;
   color: #fff;
   display: flex;
   align-items: center;
   padding: 0 16px;
-  box-shadow: 0 2px 6px rgba(0,0,0,.1);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
 }
+
+/* ============ BODY (Sidebar + Contenido) ============ */
+.dash-body {
+  display: flex !important;
+  height: calc(100vh - 72px);       /* << ocupa todo lo que queda */
+  overflow: hidden;                 /* << nada fuera de aquí scrollea */
+}
+
+/* ============ SIDEBAR ============ */
+.sidebar {
+  flex-shrink: 0;
+  width: 260px;
+  height: 100%;                     /* << llena el alto disponible (restado) */
+  overflow-y: auto;
+  background: #ecf0f1;
+  border-right: 1px solid #e3e3e3;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ============ CONTENIDO ============ */
+.dash-content {
+  flex-grow: 1;
+  overflow-y: auto;                 /* << el scroll vive aquí */
+  padding: 24px;
+}
+
+/* ============ RESPONSIVE ============ */
+.backdrop {
+  display: none;
+  position: fixed;
+  top: 72px;                        /* << debajo de la TopBar fija */
+  left: 0;
+  width: 100%;
+  height: calc(100vh - 72px);
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 998;
+}
+
+.hamburger-btn {
+  display: none;
+  background: none;
+  border: none;
+  color: white;
+  font-size: 2rem;
+  margin-right: 1rem;
+  cursor: pointer;
+}
+
+@media (max-width: 992px) {
+  .hamburger-btn { display: block; }
+
+  .sidebar {
+    position: fixed;
+    top: 72px;                       /* << arranca debajo de la TopBar */
+    left: 0;
+    height: calc(100vh - 72px);
+    z-index: 999;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease-out;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+  }
+
+  .dash-root.sidebar-open .sidebar { transform: translateX(0); }
+  .dash-root.sidebar-open .backdrop { display: block; }
+}
+
+/* (Opcional) Si algún H1 dentro del contenido empuja con margen colapsado */
+.dash-content > :first-child { margin-top: 0; }

@@ -1,76 +1,61 @@
 <template>
-  <!-- 
-    SOLUCIÓN:
-    Envolvemos todo el <main> en un <template v-if="usuarioActual">.
-    Esto soluciona el error de "timing" al asegurar que 'usuarioActual'
-    tenga datos antes de intentar leer 'usuarioActual.rol'.
-  -->
-  <template v-if="usuarioActual">
-    <main class="precios-container">
-      <div class="table-container">
-        
-        <div class="titles-wrapper">
-          <h2 
-            class="section-title"
-            :class="{ 'active-title': vistaActiva === 'precios' }"
-            @click="vistaActiva = 'precios'">
-            Lista de Precios
-          </h2>
-          <h2 
-            class="section-title"
-            :class="{ 'active-title': vistaActiva === 'danos' }"
-            @click="vistaActiva = 'danos'">
-            Lista de Precios daño o perdida
-          </h2>
-        </div>
+  <main class="precios-container">
+    <div class="table-container">
+      
+      <div class="titles-wrapper">
+        <h2 
+          class="section-title"
+          :class="{ 'active-title': vistaActiva === 'precios' }"
+          @click="vistaActiva = 'precios'">
+          Lista de Precios
+        </h2>
+        <h2 
+          class="section-title"
+          :class="{ 'active-title': vistaActiva === 'danos' }"
+          @click="vistaActiva = 'danos'">
+          Lista de Precios daño o perdida
+        </h2>
+      </div>
 
-        <div class="table-scroll-wrapper">
-          <table class="prices-table responsive-table">
-            <thead>
-              <tr>
-                <th>Cant.</th>
-                <th>Detalle</th>
-                <th>Precio Unit.</th>
-                <th>Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="item in datosTablaActiva" :key="item.id">
-                <td data-label="Cant." class="text-right">{{ item.cantidad }}</td>
-                <td data-label="Detalle">{{ item.detalle }}</td>
-                <td data-label="P/Unit" class="text-right">{{ item.precioUnitario }} Bs.</td>
-                <td data-label="Total" class="text-right fw-bold">{{ item.total }} Bs.</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+      <div class="table-scroll-wrapper">
+        <table class="prices-table responsive-table">
+          <thead>
+            <tr>
+              <th>Cant.</th>
+              <th>Detalle</th>
+              <th>Precio Unit.</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="item in datosTablaActiva" :key="item.id">
+              <td data-label="Cant." class="text-right">{{ item.cantidad }}</td>
+              <td data-label="Detalle">{{ item.detalle }}</td>
+              <td data-label="P/Unit" class="text-right">{{ item.precioUnitario }} Bs.</td>
+              <td data-label="Total" class="text-right fw-bold">{{ item.total }} Bs.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
-        <!-- Esta línea ahora está protegida por el v-if padre -->
-        <div class="actions-container" v-if="usuarioActual.rol === 'Administrador'">
-          <button class="btn btn-edit" @click="abrirModal">
-            <span>Editar</span>
-            <img src="@/assets/Edit.png" alt="editar">
-          </button>
-        </div>
-        
+      <div class="actions-container" v-if="usuarioActual?.rol?.nombre_rol === 'Administrador'">
+        <button class="btn btn-edit" @click="abrirModal">
+          <span>Editar</span>
+          <img src="@/assets/Edit.png" alt="editar">
+        </button>
       </div>
       
-      <EditarPreciosModal
-        v-if="modalVisible"
-        :lista="datosTablaActiva"
-        @cerrar="cerrarModal"
-        @guardar="guardarCambios" 
-      />
-    </main>
-  </template>
-
-  <!-- Opcional: Mensaje de carga mientras 'usuarioActual' es null -->
-  <template v-else>
-    <div class="text-center p-5">
-      Cargando lista de precios...
     </div>
+    
+    <EditarPreciosModal
+      v-if="modalVisible"
+      :lista="datosTablaActiva"
+      @cerrar="cerrarModal"
+      @guardar="guardarCambios" 
+    />
+  </main>
+
   </template>
-</template>
 
 <script setup>
 import { ref, computed } from 'vue';
@@ -82,33 +67,33 @@ const modalVisible = ref(false);
 const vistaActiva = ref('precios');
 
 const listaPrecios = ref([
-  { id: 1, cantidad: 12, detalle: 'Sillas', precioUnitario: 25, total: 300 },
-  { id: 2, cantidad: 120, detalle: 'Mesas rectangular de plastico', precioUnitario: 2, total: 240 },
-  // ... más datos
+  { id: 1, cantidad: 12, detalle: 'Sillas', precioUnitario: 25, total: 300 },
+  { id: 2, cantidad: 120, detalle: 'Mesas rectangular de plastico', precioUnitario: 2, total: 240 },
+  // ... más datos
 ]);
 
 const listaPreciosDanos = ref([
-  { id: 1, cantidad: 12, detalle: 'Sillas', precioUnitario: 50, total: 600 },
-  // ... más datos
+  { id: 1, cantidad: 12, detalle: 'Sillas', precioUnitario: 50, total: 600 },
+  // ... más datos
 ]);
 
 const datosTablaActiva = computed(() => {
-  return vistaActiva.value === 'precios' ? listaPrecios.value : listaPreciosDanos.value;
+  return vistaActiva.value === 'precios' ? listaPrecios.value : listaPreciosDanos.value;
 });
 
 const abrirModal = () => {
-  modalVisible.value = true;
+  modalVisible.value = true;
 };
 const cerrarModal = () => {
-  modalVisible.value = false;
+  modalVisible.value = false;
 };
 const guardarCambios = (listaEditada) => {
-  if (vistaActiva.value === 'precios') {
-    listaPrecios.value = listaEditada;
-  } else {
-    listaPreciosDanos.value = listaEditada;
-  }
-  cerrarModal();
+  if (vistaActiva.value === 'precios') {
+    listaPrecios.value = listaEditada;
+  } else {
+    listaPreciosDanos.value = listaEditada;
+  }
+  cerrarModal();
 };
 </script>
 

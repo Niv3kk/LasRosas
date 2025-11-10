@@ -1,104 +1,95 @@
 <template>
-  <template v-if="usuarioActual">
-    <div>
-      <div class="d-flex flex-column flex-md-row align-items-center mb-3">
-        <h2 
-          class="section-title mb-0 flex-grow-1"
-          :class="{ 'active-title': vistaActiva === 'pendientes' }"
-          @click="vistaActiva = 'pendientes'">
-          Pedidos Pendientes
-        </h2>
-        <h2 
-          class="section-title mb-0 flex-grow-1"
-          :class="{ 'active-title': vistaActiva === 'porRecoger' }"
-          @click="vistaActiva = 'porRecoger'">
-          <span class="alt">Pedidos Por Recoger</span>
-        </h2>
-      </div>
-      
-  
-      <div class="card card-soft mb-3 p-4" v-for="p in pedidosFiltrados" :key="p.numeroPedido">
-        <div class="row g-0 align-items-center">
-          <div class="col-md-3">
-            <div class="fw-semibold">Pedido de: {{ p.cliente }}</div>
-            <div>Ubicación: {{ p.ubicacion }}</div>
-            <div class="mt-2 text-muted small">{{ p.fecha }}</div>
-            <div class="mt-2">
-              <span class="fw-semibold">Estado:</span>
-              <span class="badge" :class="p.pagado ? 'badge-success' : 'badge-danger'">
-                {{ p.pagado ? 'Pagado' : 'Por Pagar' }}
-              </span>
-            </div>
-          </div>
-          <div class="col-md-3 small detalles-borde">
-            <div class="row">
-              <div class="col-4 fw-semibold">Cant.</div>
-              <div class="col-8 fw-semibold">Detalle</div>
-              <template v-for="(d, idx) in p.detalle" :key="idx">
-                <div class="col-4">{{ d.cant }}</div>
-                <div class="col-8">{{ d.item }}</div>
-              </template>
-            </div>
-          </div>
-          <div class="col-md-6 text-center">
-            <button class="btn btn-green" @click="abrirModal(p)">
-              Revisar
-              <img src="@/assets/Revisar.png" alt="Revisar pedido">
-            </button>
+  <div>
+    <div class="d-flex flex-column flex-md-row align-items-center mb-3">
+      <h2
+        class="section-title mb-0 flex-grow-1"
+        :class="{ 'active-title': vistaActiva === 'pendientes' }"
+        @click="vistaActiva = 'pendientes'"
+      >
+        Pedidos Pendientes
+      </h2>
+      <h2
+        class="section-title mb-0 flex-grow-1"
+        :class="{ 'active-title': vistaActiva === 'porRecoger' }"
+        @click="vistaActiva = 'porRecoger'"
+      >
+        <span class="alt">Pedidos Por Recoger</span>
+      </h2>
+    </div>
+
+    <div class="card card-soft mb-3 p-4" v-for="p in pedidosFiltrados" :key="p.numeroPedido">
+      <div class="row g-0 align-items-center">
+        <div class="col-md-3">
+          <div class="fw-semibold">Pedido de: {{ p.cliente }}</div>
+          <div>Ubicación: {{ p.ubicacion }}</div>
+          <div class="mt-2 text-muted small">{{ p.fecha }}</div>
+          <div class="mt-2">
+            <span class="fw-semibold">Estado:</span>
+            <span class="badge" :class="p.pagado ? 'badge-success' : 'badge-danger'">
+              {{ p.pagado ? 'Pagado' : 'Por Pagar' }}
+            </span>
           </div>
         </div>
+        <div class="col-md-3 small detalles-borde">
+          <div class="row">
+            <div class="col-4 fw-semibold">Cant.</div>
+            <div class="col-8 fw-semibold">Detalle</div>
+            <template v-for="(d, idx) in p.detalle" :key="idx">
+              <div class="col-4">{{ d.cant }}</div>
+              <div class="col-8">{{ d.item }}</div>
+            </template>
+          </div>
+        </div>
+        <div class="col-md-6 text-center">
+          <button class="btn btn-green" @click="abrirModal(p)">
+            Revisar
+            <img src="@/assets/Revisar.png" alt="Revisar pedido" />
+          </button>
+        </div>
       </div>
-  
-      <div v-if="pedidosFiltrados.length === 0" class="text-center text-muted mt-5">
-        <p>No hay pedidos en esta sección.</p>
-      </div>
-  
-      <DetallePedidoModal 
-        v-if="modalVisible" 
-        :pedido="pedidoSeleccionado"
-        :vista="vistaActiva" 
-        @cerrar="cerrarModal"
-        @borrar="borrarPedido"
-        @guardar="guardarPedidoEditado"
-        @entregar="entregarPedido"
-        @recoger="recogerPedido"
-      />
-  
-      <!-- Esta era la línea 66 que daba el error. Ahora está protegida por el v-if padre -->
-      <button v-if="usuarioActual.rol === 'Propietaria'" class="btn-crear-alquiler" @click="abrirCrearModal">
-        <i class="bi bi-plus-lg"></i>
-        <span>Crear Alquiler</span>
-      </button>
-      
-      <CrearAlquilerModal
-        v-if="crearModalVisible"
-        :vista="vistaActiva"
-        @cerrar="cerrarCrearModal"
-        @guardar="guardarNuevoAlquiler"
-      />
     </div>
-  </template>
 
-  <!-- Opcional: Mostrar un mensaje de "cargando" mientras 'usuarioActual' es null -->
-  <template v-else>
-    <div class="text-center p-5">
-      Cargando datos del usuario...
+    <div v-if="pedidosFiltrados.length === 0" class="text-center text-muted mt-5">
+      <p>No hay pedidos en esta sección.</p>
     </div>
-  </template>
+
+    <DetallePedidoModal
+      v-if="modalVisible"
+      :pedido="pedidoSeleccionado"
+      :vista="vistaActiva"
+      @cerrar="cerrarModal"
+      @borrar="borrarPedido"
+      @guardar="guardarPedidoEditado"
+      @entregar="entregarPedido"
+      @recoger="recogerPedido"
+    />
+
+    <button
+      v-if="usuarioActual?.rol?.nombre_rol === 'Propietaria'"
+      class="btn-crear-alquiler"
+      @click="abrirCrearModal"
+    >
+      <i class="bi bi-plus-lg"></i>
+      <span>Crear Alquiler</span>
+    </button>
+
+    <CrearAlquilerModal
+      v-if="crearModalVisible"
+      :vista="vistaActiva"
+      @cerrar="cerrarCrearModal"
+      @guardar="guardarNuevoAlquiler"
+    />
+  </div>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue';
-// Nota: Asegúrate de que esta ruta a tu store sea correcta.
-// Si tu carpeta se llama 'store', la ruta es '@/store/auth.js'
 import { usuarioActual } from '@/services/auth.js';
 import DetallePedidoModal from '@/components/DetallePedidoModal.vue';
 import CrearAlquilerModal from '@/components/CrearAlquilerModal.vue';
 
-// --- ESTADO DE LA VISTA (TABS) ---
 const vistaActiva = ref('pendientes');
 
-// --- DATOS DE EJEMPLO ---
 const pedidosPendientes = ref([
   {
     cliente: 'Andrea Garnica',
@@ -145,17 +136,14 @@ const pedidosPorRecoger = ref([
   },
 ]);
 
-// --- ESTADO DE LOS MODALES ---
-const modalVisible = ref(false); // Para ver/editar
+const modalVisible = ref(false);
 const pedidoSeleccionado = ref(null);
-const crearModalVisible = ref(false); // Para crear
+const crearModalVisible = ref(false);
 
-// --- LÓGICA DE FILTRADO ---
 const pedidosFiltrados = computed(() => {
   return vistaActiva.value === 'pendientes' ? pedidosPendientes.value : pedidosPorRecoger.value;
 });
 
-// --- FUNCIONES PARA MODAL DE DETALLES/EDICIÓN ---
 const abrirModal = (pedido) => {
   pedidoSeleccionado.value = pedido;
   modalVisible.value = true;
@@ -191,11 +179,10 @@ const guardarPedidoEditado = (pedidoEditado) => {
   } else {
     pedidosPorRecoger.value = actualizarLista(pedidosPorRecoger.value);
   }
-  
+
   cerrarModal();
 };
 
-// --- FUNCIONES PARA MODAL DE CREACIÓN ---
 const abrirCrearModal = () => {
   crearModalVisible.value = true;
 };
@@ -205,46 +192,34 @@ const cerrarCrearModal = () => {
 };
 
 const guardarNuevoAlquiler = (nuevoPedido) => {
-  // Le asignamos los datos que faltan (ID, N°, fecha y hora)
   nuevoPedido.id = `pedido_${Date.now()}`;
   nuevoPedido.numeroPedido = String(Math.floor(Math.random() * 10000));
   const hoy = new Date();
   nuevoPedido.fecha = hoy.toLocaleDateString('es-ES');
   nuevoPedido.hora = hoy.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
 
-  // ===== LÓGICA ACTUALIZADA =====
-  // Verificamos qué pestaña está activa y guardamos en la lista correcta
   if (vistaActiva.value === 'pendientes') {
     pedidosPendientes.value.unshift(nuevoPedido);
   } else {
     pedidosPorRecoger.value.unshift(nuevoPedido);
   }
-  
-  // Cerramos el modal de creación
+
   cerrarCrearModal();
 };
-// ===== NUEVAS FUNCIONES PARA LA PROPIETARIA =====
-const entregarPedido = (pedidoAEntregar) => {
-  // 1. Quitar de la lista de pendientes
-  pedidosPendientes.value = pedidosPendientes.value.filter(p => p.numeroPedido !== pedidoAEntregar.numeroPedido);
-  
-  // 2. Añadir a la lista por recoger
-  pedidosPorRecoger.value.unshift(pedidoAEntregar);
 
-  // 3. Cerrar el modal
+const entregarPedido = (pedidoAEntregar) => {
+  pedidosPendientes.value = pedidosPendientes.value.filter(p => p.numeroPedido !== pedidoAEntregar.numeroPedido);
+  pedidosPorRecoger.value.unshift(pedidoAEntregar);
   cerrarModal();
 };
 
 const recogerPedido = (pedidoARecoger) => {
-  // 1. Quitar de la lista por recoger (se considera completado)
   pedidosPorRecoger.value = pedidosPorRecoger.value.filter(p => p.numeroPedido !== pedidoARecoger.numeroPedido);
-  
-  // (Aquí podrías añadirlo a una lista de historial si quisieras)
-
-  // 2. Cerrar el modal
   cerrarModal();
 };
 </script>
+
+
 
 <style scoped>
 /* Tu CSS se mantiene exactamente igual, no necesita cambios */

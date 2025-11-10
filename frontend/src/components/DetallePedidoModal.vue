@@ -1,9 +1,9 @@
 <template>
   <div class="modal-overlay" @click="onOverlayClick">
     <div class="modal-content" @click.stop>
-      
       <h2 class="modal-title">Detalle del Pedido</h2>
-      
+
+      <!-- Vista solo lectura -->
       <div v-if="!enModoEdicion" class="modal-body">
         <div class="modal-header-info">
           <div>
@@ -16,10 +16,12 @@
             <div>N° <strong>{{ pedido.numeroPedido }}</strong></div>
           </div>
         </div>
+
         <div class="modal-dates">
-          Fecha de entrega: <strong>{{ pedido.fechaEntrega }}</strong> / 
+          Fecha de entrega: <strong>{{ pedido.fechaEntrega }}</strong> /
           Fecha de recojo: <strong>{{ pedido.fechaRecojo }}</strong>
         </div>
+
         <div class="table-scroll-wrapper">
           <table class="modal-table responsive-table">
             <thead>
@@ -40,60 +42,65 @@
             </tbody>
           </table>
         </div>
+
         <div class="modal-footer-info">
           <div class="garantia">
-            <input type="checkbox" id="garantia_vista" :checked="pedido.garantia" disabled>
+            <input type="checkbox" id="garantia_vista" :checked="pedido.garantia" disabled />
             <label for="garantia_vista">Garantía:</label>
           </div>
           <div class="total-final">
             Total: <strong>{{ pedido.granTotal }} Bs.</strong>
           </div>
         </div>
+
         <div class="direccion">
           Dirección: <strong>{{ pedido.direccion }}</strong>
         </div>
-        
+
         <div class="modal-actions">
-          <template v-if="usuarioActual.rol === 'Administrador'">
+          <template v-if="usuarioActual?.rol?.nombre_rol === 'Administrador'">
             <button class="btn btn-edit" @click="entrarModoEdicion">
-              <span>Editar</span><img src="@/assets/Edit.png" alt="editar">
+              <span>Editar</span>
+              <img src="@/assets/Edit.png" alt="editar" />
             </button>
             <button class="btn btn-delete" @click="$emit('borrar', pedido.numeroPedido)">
-              <span>Borrar</span><img src="@/assets/Delete.png" alt="borrar">
+              <span>Borrar</span>
+              <img src="@/assets/Delete.png" alt="borrar" />
             </button>
           </template>
 
-          <template v-else-if="usuarioActual.rol === 'Propietaria'">
+          <template v-else-if="usuarioActual?.rol?.nombre_rol === 'Propietaria'">
             <button v-if="vista === 'pendientes'" class="btn btn-entregar" @click="$emit('entregar', pedido)">
               Entregar
-              <img src="@/assets/Check.png" alt="check">
+              <img src="@/assets/Check.png" alt="check" />
             </button>
             <button v-if="vista === 'porRecoger'" class="btn btn-recoger" @click="$emit('recoger', pedido)">
               Recoger
-              <img src="@/assets/Check.png" alt="check">
-
+              <img src="@/assets/Check.png" alt="check" />
             </button>
           </template>
         </div>
       </div>
 
+      <!-- Vista edición -->
       <div v-else class="modal-body">
         <div class="modal-header-info editable-section">
           <div>
             <label>Pedido de:</label>
-            <input type="text" v-model="pedidoEditable.cliente">
+            <input type="text" v-model="pedidoEditable.cliente" />
             <label>Celular 1:</label>
-            <input type="text" v-model="pedidoEditable.celular1">
+            <input type="text" v-model="pedidoEditable.celular1" />
             <label>Celular 2:</label>
-            <input type="text" v-model="pedidoEditable.celular2">
+            <input type="text" v-model="pedidoEditable.celular2" />
           </div>
           <div class="text-end">
-             <label>Fecha de entrega:</label>
-            <input type="text" v-model="pedidoEditable.fechaEntrega">
+            <label>Fecha de entrega:</label>
+            <input type="text" v-model="pedidoEditable.fechaEntrega" />
             <label>Fecha de recojo:</label>
-            <input type="text" v-model="pedidoEditable.fechaRecojo">
+            <input type="text" v-model="pedidoEditable.fechaRecojo" />
           </div>
         </div>
+
         <div class="table-scroll-wrapper">
           <table class="modal-table responsive-table">
             <thead>
@@ -106,27 +113,36 @@
             </thead>
             <tbody>
               <tr v-for="(item, idx) in pedidoEditable.detalle" :key="idx">
-                <td data-label="Cant."><input class="input-table" type="number" v-model="item.cant" @input="actualizarTotales"></td>
-                <td data-label="Detalle"><input class="input-table" type="text" v-model="item.item"></td>
-                <td data-label="P/Unit"><input class="input-table" type="number" v-model="item.precioUnitario" @input="actualizarTotales"></td>
+                <td data-label="Cant.">
+                  <input class="input-table" type="number" v-model="item.cant" @input="actualizarTotales" />
+                </td>
+                <td data-label="Detalle">
+                  <input class="input-table" type="text" v-model="item.item" />
+                </td>
+                <td data-label="P/Unit">
+                  <input class="input-table" type="number" v-model="item.precioUnitario" @input="actualizarTotales" />
+                </td>
                 <td data-label="Total" class="text-end fw-bold">{{ item.total }} Bs.</td>
               </tr>
             </tbody>
           </table>
         </div>
+
         <div class="modal-footer-info">
-           <div class="garantia">
-            <input type="checkbox" id="garantia_edit" v-model="pedidoEditable.garantia">
+          <div class="garantia">
+            <input type="checkbox" id="garantia_edit" v-model="pedidoEditable.garantia" />
             <label for="garantia_edit">Garantía:</label>
           </div>
           <div class="total-final">
             Total: <strong>{{ pedidoEditable.granTotal }} Bs.</strong>
           </div>
         </div>
+
         <div class="direccion editable-section">
           <label>Dirección:</label>
-          <input type="text" v-model="pedidoEditable.direccion">
+          <input type="text" v-model="pedidoEditable.direccion" />
         </div>
+
         <div class="modal-actions">
           <button class="btn btn-cancel" @click="cancelarEdicion">Cancelar</button>
           <button class="btn btn-save" @click="guardarCambios">Guardar</button>
@@ -138,19 +154,15 @@
 
 <script setup>
 import { ref } from 'vue';
-// 1. Importamos el usuario actual para verificar el rol
 import { usuarioActual } from '@/services/auth.js';
 
-// 2. Añadimos la nueva prop 'vista'
 const props = defineProps({
   pedido: { type: Object, required: true },
-  vista: { type: String, required: true } // 'pendientes' o 'porRecoger'
+  vista: { type: String, required: true }
 });
 
-// 3. Añadimos los nuevos eventos que el modal puede emitir
 const emit = defineEmits(['cerrar', 'borrar', 'guardar', 'entregar', 'recoger']);
 
-// --- (El resto de tu script no necesita cambios) ---
 const enModoEdicion = ref(false);
 const pedidoEditable = ref(null);
 
@@ -187,6 +199,8 @@ const actualizarTotales = () => {
   }
 };
 </script>
+
+
 
 
 <style scoped>

@@ -1,48 +1,96 @@
-# Byte-compiled / optimized / DLL files
-__pycache__/
+# Archivos compilados de Python
 *.py[cod]
+__pycache__/
+**/__pycache__/
 *$py.class
 
-# Ignorar __pycache__ en cualquier nivel del proyecto
-**/__pycache__/
+# Cachés de pruebas
+.pytest_cache/
+.coverage
+htmlcov/
 
-# Virtual environments
-venv/
-env/
-.venv/
-.env/
-
-# Environment variables
-*.env
-.env.*
-
-# Django / Flask / FastAPI specific
+# Archivos de pruebas y cobertura
+.tox/
+nosetests.xml
+coverage.xml
+*.cover
 *.log
+
+# Archivos de profiling
+.prof
+
+# Archivos de distribución
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Archivos de instalación
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Archivos de wheel
+*.whl
+
+# Archivos de Cython
+*.c
+*.so
+
+# Archivos de base de datos
+*.sqlite3
+*.db
+
+# Variables de entorno
+.env
+.env.*
+*.env
+
+# Archivos de configuración local
+*.ini
+*.cfg
+*.toml
+
+# Archivos de traducción
+*.mo
 *.pot
-*.pyc
-db.sqlite3
-instance/
-migrations/**/__pycache__/
 
-# VSCode / IDE settings
-.vscode/
-.idea/
-*.swp
+# Archivos de lock
+poetry.lock
+Pipfile.lock
 
-# System files
+# Archivos de documentación
+docs/_build/
+
+# Archivos de notebooks
+.ipynb_checkpoints
+
+# Archivos de sistema
 .DS_Store
 Thumbs.db
 
-# Dependencies
-*.egg-info/
-dist/
-build/
+# Archivos swap y temporales
+*.swp
+*.swo
+*~
 
-# Coverage / testing
-.coverage
-htmlcov/
-.pytest_cache/
+# Entornos virtuales
+venv/
+.venv/
+env/
+.env/
 
-# Custom project files
-backend/**/__pycache__/
-backend/core/__pycache__/
+# Configuración de IDEs
+.vscode/
+.idea/
+*.code-workspace
+
+# Archivos específicos de Django / Flask / FastAPI
+instance/
+migrations/**/__pycache__/
+*.log
+
+# Ignorar todo lo que esté en carpetas __pycache__ en cualquier nivel
+**/__pycache__/
+
+# Ignorar archivos .pyc en cualquier parte del proyecto
+**/*.pyc
