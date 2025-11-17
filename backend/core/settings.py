@@ -5,6 +5,7 @@ Django settings for core project.
 from pathlib import Path
 import os
 import environ
+from datetime import timedelta # <-- NUEVA IMPORTACIÓN (para SIMPLE_JWT)
 
 # =========================
 # BASE / ENV
@@ -36,16 +37,24 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'rest_framework',  # si ya instalaste DRF
-    'api.apps.ApiConfig',             # <--- asegúrate de tener esta línea
+
+    'rest_framework',
     "corsheaders",
+
+    # Local Apps
+    'api.apps.ApiConfig',
 ]
 
-
+# --- CORRECCIÓN 2: Configuración de REST Framework ---
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': [],
-    'DEFAULT_PERMISSION_CLASSES': [],
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'api.auth_backend.UsuarioJWTAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
 }
+
 
 # =========================
 # MIDDLEWARE
@@ -128,3 +137,29 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # =========================
 # Define en .env (coma-separado): "http://127.0.0.1:5173,http://localhost:5173"
 CORS_ALLOWED_ORIGINS = [o.strip() for o in env('CORS_ALLOWED_ORIGINS', default='').split(',') if o.strip()]
+
+
+# --- NUEVO: Configuración de SIMPLE_JWT ---
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60), # Duración del token de acceso
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),    # Duración del token de refresco
+    'ROTATE_REFRESH_TOKENS': False,
+    'BLACKLIST_AFTER_ROTATION': True,
+
+    'ALGORITHM': 'HS256',
+    'SIGNING_KEY': SECRET_KEY,
+    'VERIFYING_KEY': None,
+    'AUDIENCE': None,
+    'ISSUER': None,
+
+    'AUTH_HEADER_TYPES': ('Bearer',), # El tipo de token que usará (ej: "Bearer ...")
+    'AUTH_HEADER_NAME': 'HTTP_AUTHORIZATION',
+    'USER_ID_FIELD': 'id',
+    'USER_ID_CLAIM': 'user_id',
+    'USER_AUTHENTICATION_RULE': 'rest_framework_simplejwt.authentication.default_user_authentication_rule',
+
+    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
+    'TOKEN_TYPE_CLAIM': 'token_type',
+
+    'JTI_CLAIM': 'jti',
+}

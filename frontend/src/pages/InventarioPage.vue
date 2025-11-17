@@ -2,72 +2,80 @@
   <main class="inventario-container">
     <h1 class="main-title">Inventario</h1>
 
-    <div class="table-container">
+    <!-- UI de Carga -->
+    <div v-if="loading" class="text-center" style="padding: 5rem">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+      <p class="mt-2">Cargando inventario...</p>
+    </div>
+
+    <!-- UI de Error -->
+    <div v-if="error" class="alert alert-danger mx-3">
+      <strong>Error:</strong> {{ error }}
+    </div>
+
+    <div class="table-container" v-if="!loading && !error">
       <div class="table-scroll-wrapper">
         <table class="inventory-table responsive-table">
           <thead>
             <tr>
-              <th>Cant.</th>
+              <th class="text-right">Stock Actual</th>
+              <th>Artículo</th>
               <th>Detalle</th>
-              <th>Stock Inicial</th>
-              <th>Salidas</th>
-              <th>Total</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="item in inventario" :key="item.id">
-              <td data-label="Cant." class="text-right">{{ item.cantidad }}</td>
+            <tr
+              v-for="item in inventario"
+              :key="item.id"
+            >
+              <td data-label="Stock Actual" class="text-right fw-bold">
+                {{ item.stock_actual }}
+              </td>
+              <td data-label="Artículo">{{ item.nombre_articulo }}</td>
               <td data-label="Detalle">{{ item.detalle }}</td>
-              <td data-label="Stock Inicial" class="text-right">{{ item.stockInicial }}</td>
-              <td data-label="Salidas" class="text-right">{{ item.salidas }}</td>
-              <td data-label="Total" class="text-right fw-bold">{{ item.total }}</td>
+            </tr>
+
+            <tr v-if="inventario.length === 0">
+              <td colspan="3" class="text-center">
+                No se encontraron artículos en el inventario.
+              </td>
             </tr>
           </tbody>
         </table>
       </div>
-
-      <div class="actions-container" v-if="usuarioActual?.rol?.nombre_rol === 'Administrador'">
-        <button class="btn btn-edit" @click="abrirModal">
-          <span>Editar</span>
-          <img src="@/assets/Edit.png" alt="editar">
-        </button>
-      </div>
-      </div>
-    
-    <EditarInventarioModal
-      v-if="modalVisible"
-      :inventario="inventario"
-      @cerrar="cerrarModal"
-      @guardar="guardarInventario"
-    />
+    </div>
   </main>
-  
-  </template>
+</template>
 
 <script setup>
-import { ref } from 'vue';
-// ===== 1. SE IMPORTA EL USUARIO ACTUAL PARA VERIFICAR EL ROL =====
-import { usuarioActual } from '@/services/auth.js';
-import EditarInventarioModal from '@/components/EditarInventarioModal.vue';
+import { ref, onMounted } from 'vue';
+import { getInventario } from '@/services/inventarioService.js';
 
-const modalVisible = ref(false);
+const inventario = ref([]);
+const loading = ref(true);
+const error = ref(null);
 
-const inventario = ref([
-  { id: 1, cantidad: 325, detalle: 'Sillas', stockInicial: 350, salidas: 25, total: 325 },
-  { id: 2, cantidad: 8, detalle: 'Mesas rectangular de plastico', stockInicial: 10, salidas: 2, total: 8 },
-]);
+const cargarInventario = async () => {
+  try {
+    loading.value = true;
+    error.value = null;
+    const response = await getInventario();
+    inventario.value = response.data;
+  } catch (err) {
+    console.error(err);
+    error.value = 'Error al cargar el inventario. Intente de nuevo.';
+  } finally {
+    loading.value = false;
+  }
+};
 
-const abrirModal = () => {
-  modalVisible.value = true;
-};
-const cerrarModal = () => {
-  modalVisible.value = false;
-};
-const guardarInventario = (inventarioEditado) => {
-  inventario.value = inventarioEditado;
-  cerrarModal();
-};
+onMounted(() => {
+  cargarInventario();
+});
 </script>
+
 
 <style scoped>
 /* Contenedor principal de la página de inventario */

@@ -1,60 +1,230 @@
 <template>
   <main class="historial-container">
-    <h1 class="main-title">Historial de Inventario</h1>
+    <h1 class="main-title">{{ pageTitle }}</h1>
 
     <div class="search-bar">
       <div class="search-input-wrapper">
         <i class="bi bi-search"></i>
-        <input type="text" placeholder="Buscar...">
+        <input
+          type="text"
+          placeholder="Buscar por motivo, artículo o usuario..."
+          v-model="searchTerm"
+        >
       </div>
-      <button class="filter-btn">
-        <span>Filtrar</span>
-        <img src="@/assets/Filtro.png" alt="">
+
+      <button
+        class="btn btn-secondary"
+        @click="clearFilter"
+        v-if="route.query.item_id"
+      >
+        <span>Ver todo</span>
+        <i class="bi bi-x-circle"></i>
+      </button>
+
+      <!-- 🔹 Botón aparece siempre que seas Admin -->
+      <button
+        class="btn btn-edit"
+        v-if="esAdmin"
+        @click="abrirModalNuevo"
+      >
+        <span>Agregar Movimiento</span>
+        <img src="@/assets/Edit.png" alt="agregar">
       </button>
     </div>
 
-    <div class="log-list">
-      <div class="log-card" v-for="log in historial" :key="log.id">
-        
-        <div class="log-date">{{ log.fecha }}</div>
+    <div v-if="loading" class="text-center" style="padding: 5rem">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+    </div>
 
-        <div class="log-detail">{{ log.detalle }}</div>
+    <div v-if="error" class="alert alert-danger mx-3">
+      <strong>Error:</strong> {{ error }}
+    </div>
 
-        <div 
-          class="log-change" 
-          :class="{
-            'positive-change': log.cambio > 0, 
-            'negative-change': log.cambio < 0
-          }">
-          {{ log.cambio > 0 ? '+' : '' }}{{ log.cambio }}
+    <div class="log-list" v-if="!loading && !error">
+      <div
+        class="log-card"
+        v-for="log in filteredHistorial"
+        :key="log.id"
+      >
+        <div class="log-date">{{ formatFecha(log.fecha) }}</div>
+
+        <div class="log-detail">
+          <strong v-if="!route.query.item_id" class="d-block">
+            {{ log.nombre_articulo }}
+          </strong>
+          {{ log.motivo }}
+          <em class="d-block text-muted mt-1">
+            Usuario: {{ log.nombre_usuario }}
+          </em>
         </div>
 
+        <div
+          class="log-change"
+          :class="{
+            'positive-change': log.tipo_movimiento === 'Entrada',
+            'negative-change': log.tipo_movimiento === 'Salida',
+          }"
+        >
+          {{ log.tipo_movimiento === 'Entrada' ? '+' : '' }}
+          {{ log.tipo_movimiento === 'Salida' ? '-' : '' }}
+          {{ log.cantidad }}
+        </div>
+      </div>
+
+      <div
+        v-if="filteredHistorial.length === 0"
+        class="text-center p-5 text-muted"
+      >
+        No se encontraron movimientos.
       </div>
     </div>
   </main>
+
+  <!-- 🔹 Modal sin props de item -->
+  <AgregarHistorialModal
+    v-if="modalNuevoVisible"
+    @cerrar="cerrarModalNuevo"
+    @guardar="guardarNuevoHistorial"
+  />
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, watch, computed } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { getHistorialInventario } from '@/services/inventarioService';
+import { usuarioActual as usuarioActualRef, getUser } from '@/services/auth.js';
+import AgregarHistorialModal from '@/components/AgregarHistorialModal.vue';
 
-// Datos de ejemplo para el historial de inventario.
-// Esto lo conectarás luego con tu base de datos.
-const historial = ref([
-  { id: 1, fecha: '14/09/2024', detalle: 'Se realizó la reducción de platos por perdida', cambio: -4 },
-  { id: 2, fecha: '14/09/2024', detalle: 'Se realizó la reducción de sillas por daño', cambio: -1 },
-  { id: 3, fecha: '14/09/2024', detalle: 'Se realizó la reposición de una caja de vasos champaneros', cambio: 12 },
-  { id: 4, fecha: '13/09/2024', detalle: 'Compra de 50 manteles nuevos', cambio: 50 },
-  { id: 5, fecha: '13/09/2024', detalle: 'Se realizó la reducción de tenedores por perdida', cambio: -10 },
-  { id: 6, fecha: '12/09/2024', detalle: 'Salida de 2 toldos para evento', cambio: -2 },
-]);
+const route = useRoute();
+const router = useRouter();
+
+// Usuario actual (ref o localStorage)
+const usuario = computed(() => {
+  return usuarioActualRef.value || getUser();
+});
+const esAdmin = computed(
+  () => usuario.value?.rol?.nombre_rol === 'Administrador'
+);
+
+console.log('DEBUG usuario en HistorialInventarioPage:', usuario.value);
+
+// Estado
+const historial = ref([]);
+const loading = ref(true);
+const error = ref(null);
+const searchTerm = ref('');
+const modalNuevoVisible = ref(false);
+
+// Título dinámico
+const pageTitle = computed(() => {
+  const itemName = route.query.item_nombre;
+  return itemName ? `Historial: ${itemName}` : 'Historial de Inventario';
+});
+
+// Carga de datos
+const cargarHistorial = async (query) => {
+  try {
+    loading.value = true;
+    error.value = null;
+
+    const filtros = {};
+    if (query.item_id) {
+      filtros.inventario = query.item_id;
+    }
+
+    console.log('DEBUG route.query en HistorialInventarioPage:', query);
+
+    const response = await getHistorialInventario(filtros);
+    historial.value = response.data;
+  } catch (err) {
+    console.error(err);
+    error.value = 'Error al cargar el historial. Intente de nuevo.';
+  } finally {
+    loading.value = false;
+  }
+};
+
+// Filtro de búsqueda
+const filteredHistorial = computed(() => {
+  if (!searchTerm.value) {
+    return historial.value;
+  }
+  const lowerSearch = searchTerm.value.toLowerCase();
+
+  return historial.value.filter((log) => {
+    const inMotivo =
+      log.motivo && log.motivo.toLowerCase().includes(lowerSearch);
+    const inArticulo =
+      log.nombre_articulo &&
+      log.nombre_articulo.toLowerCase().includes(lowerSearch);
+    const inUsuario =
+      log.nombre_usuario &&
+      log.nombre_usuario.toLowerCase().includes(lowerSearch);
+
+    return inMotivo || inArticulo || inUsuario;
+  });
+});
+
+// Reaccionar a cambios en la URL
+watch(
+  () => route.query,
+  (newQuery) => {
+    cargarHistorial(newQuery);
+  },
+  {
+    immediate: true,
+    deep: true,
+  }
+);
+
+// Acciones
+const clearFilter = () => {
+  router.push({ name: 'historial-inventario' });
+};
+
+const abrirModalNuevo = () => {
+  modalNuevoVisible.value = true;
+};
+
+const cerrarModalNuevo = () => {
+  modalNuevoVisible.value = false;
+};
+
+const guardarNuevoHistorial = async () => {
+  cerrarModalNuevo();
+  await cargarHistorial(route.query);
+};
+
+// Helper para fecha
+const formatFecha = (fechaISO) => {
+  if (!fechaISO) return '';
+  const fecha = new Date(fechaISO);
+  const options = {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
+  };
+  return fecha.toLocaleString('es-BO', options);
+};
 </script>
 
+
 <style scoped>
+@import url("https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css");
+
 /* Estilo General del Contenedor */
 .historial-container {
   padding: 2rem;
   background-color: #f0f2f5;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Título */
@@ -65,7 +235,7 @@ const historial = ref([
   font-weight: 600;
 }
 
-/* Barra de Búsqueda (reutilizamos estilos de la vista anterior para consistencia) */
+/* Barra de Búsqueda */
 .search-bar {
   display: flex;
   gap: 1rem;
@@ -97,37 +267,76 @@ const historial = ref([
   font-size: 1rem;
 }
 
-.filter-btn {
+/* --- NUEVO: Estilos de Botones (reemplaza .filter-btn) --- */
+.btn {
+  border: none;
+  border-radius: 8px;
+  padding: 0.6rem 1.5rem;
+  color: white;
+  cursor: pointer;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
-  background: white;
-  border: 1px solid #ddd;
-  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: opacity 0.2s;
+  /* Ajuste para que encaje con la barra */
   padding: 0.75rem 1rem;
-  cursor: pointer;
   font-size: 1rem;
-  transition: background-color 0.2s;
-}
-.filter-btn img{
-  height: 23px;
-  align-items: center;
-}
-.filter-btn:hover {
-  background-color: #f7f7f7;
+  line-height: 1.2;
+  /* Ajuste de línea */
 }
 
+.btn:hover {
+  opacity: 0.85;
+}
+
+.btn-edit {
+  background-color: #00BCD4;
+  /* Cian */
+}
+
+.btn-edit:hover {
+  background-color: #00BCD4;
+}
+
+.btn-edit img {
+  height: 23px;
+}
+
+.btn-edit:active,
+.btn-edit:focus {
+  background-color: #00BCD4 !important;
+  border-color: #00BCD4 !important;
+  box-shadow: none !important;
+}
+
+.btn-secondary {
+  background-color: #6c757d;
+  /* Gris de Bootstrap */
+}
+
+/* -------------------------------------------------------- */
+
+
 /* Tarjeta de cada registro del historial */
+.log-list {
+  flex-grow: 1;
+  overflow-y: auto;
+  padding-right: 5px;
+  /* Espacio para scrollbar */
+}
+
 .log-card {
   background: white;
   border-radius: 12px;
   padding: 1rem 1.5rem;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
   margin-bottom: 1rem;
-  
-  /* Usamos Grid para alinear las 3 columnas */
+
   display: grid;
-  grid-template-columns: 1fr 3fr 1fr; /* Columna de detalle es 3 veces más ancha */
+  grid-template-columns: 1fr 3fr 1fr;
   align-items: center;
   gap: 1.5rem;
   font-size: 1rem;
@@ -148,34 +357,96 @@ const historial = ref([
   font-size: 1.1rem;
 }
 
-/* Estilos para los números positivos y negativos */
 .positive-change {
-  color: #4CAF50; /* Verde */
+  color: #4CAF50;
+  /* Verde */
 }
 
 .negative-change {
-  color: #E53935; /* Rojo */
+  color: #E53935;
+  /* Rojo */
 }
-/* ===== NUEVO: ESTILOS RESPONSIVOS ===== */
+
+/* --- NUEVO: Helpers de UI (Carga, Error) --- */
+.text-center {
+  text-align: center;
+}
+
+.text-muted {
+  color: #6c757d;
+}
+
+.d-block {
+  display: block;
+}
+
+.mt-1 {
+  margin-top: 0.25rem;
+}
+
+.p-5 {
+  padding: 3rem;
+}
+
+.mx-3 {
+  margin-left: 1rem;
+  margin-right: 1rem;
+}
+
+.alert {
+  padding: 1rem;
+  border: 1px solid transparent;
+  border-radius: 8px;
+}
+
+.alert-danger {
+  color: #721c24;
+  background-color: #f8d7da;
+  border-color: #f5c6cb;
+}
+
+.spinner-border {
+  display: inline-block;
+  width: 2rem;
+  height: 2rem;
+  vertical-align: text-bottom;
+  border: 0.25em solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: 0.75s linear infinite spinner-border;
+}
+
+@keyframes spinner-border {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Importar iconos de bootstrap */
+/* ------------------------------------------- */
+
+
+/* ===== ESTILOS RESPONSIVOS ===== */
 @media (max-width: 768px) {
   .historial-container {
-    padding: 1rem; /* Menos padding en la página */
+    padding: 1rem;
   }
 
   .search-bar {
-    flex-direction: column; /* Apila el buscador y el filtro */
+    flex-direction: column;
   }
-  .filter-btn{
+
+  .btn {
+    /* Hacemos que los botones ocupen todo el ancho en móvil */
     justify-content: center;
   }
 
   .log-card {
-    grid-template-columns: 1fr; /* Cambia el grid a una sola columna */
-    gap: 0.5rem; /* Reduce el espacio entre los items apilados */
-    text-align: center; /* Centra el contenido para un look uniforme */
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+    text-align: center;
   }
 
-  /* Anulamos las alineaciones específicas para que el centrado general funcione */
   .log-date,
   .log-detail,
   .log-change {

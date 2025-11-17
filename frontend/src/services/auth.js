@@ -1,18 +1,25 @@
-// src/services/auth.js
 import { ref } from "vue";
 import { api, BASE } from "@/axios";
+import axios from "axios";
 
 // Estado reactivo del usuario en memoria
-export const usuarioActual = ref(null);  // { usuario_id, nombre_completo, nombre_usuario, rol:{ nombre_rol, ... } }
+export const usuarioActual = ref(null);
 
 // ---------- helpers de sesión ----------
 const KEY_TOKEN = "token";
 const KEY_USER  = "user";
 
+// --- setSession (MODIFICADO) ---
+// Ahora puede guardar token y usuario por separado sin borrar el otro
 export function setSession({ token, user }) {
-  if (token) localStorage.setItem(KEY_TOKEN, token);
-  if (user)  localStorage.setItem(KEY_USER, JSON.stringify(user));
-  usuarioActual.value = user || null;
+  if (token) {
+    localStorage.setItem(KEY_TOKEN, token);
+  }
+  if (user) {
+    localStorage.setItem(KEY_USER, JSON.stringify(user));
+  }
+  // Siempre lee desde localStorage para actualizar el estado
+  usuarioActual.value = getUser(); 
 }
 
 export function clearSession() {
@@ -36,41 +43,60 @@ export function isAuthenticated() {
 
 export function userRole() {
   const u = usuarioActual.value || getUser();
-  return u?.rol?.nombre_rol || null;  // "Administrador" | "Propietaria" | null
+  return u?.rol?.nombre_rol || null;
 }
 
-// Carga inicial (rehidrata desde localStorage cuando arranca la app)
 export function initAuthFromStorage() {
   const u = getUser();
   usuarioActual.value = u;
 }
 
-// ---------- llamadas al backend ----------
+// ---------- llamadas al backend (CORREGIDAS) ----------
+
+// --- login (Totalmente Modificado) ---
 export async function login({ username, password }) {
-  // login no usa bearer; por eso llamamos a fetch/axios a mano
-  const res = await fetch(`${BASE}/api/auth/login/`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ username, password }),
-  });
+  try {
+    // Paso 1: Obtener el token de la nueva ruta de simplejwt
+    // Usamos 'axios' base (no 'api') porque 'api' adjuntaría un token que no tenemos
+    const res = await axios.post(`${BASE}/api/auth/token/`, {
+      username,
+      password,
+    });
 
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.detail || "Credenciales inválidas");
+    const token = res.data.access; // simplejwt devuelve el token en 'access'
+    if (!token) throw new Error("No se recibió token");
+
+    // Paso 2: Guardar SOLO el token en sesión
+    setSession({ token });
+
+    // Paso 3: Llamar a 'me()' PARA OBTENER LOS DATOS DEL USUARIO
+    // 'me()' usará la instancia 'api' que ahora adjuntará el nuevo token
+    const user = await me(); // me() se encarga de guardar el usuario en sesión
+
+    // Devolvemos ambos, tal como esperaba tu lógica anterior
+    return { token, user };
+
+  } catch (err) {
+    clearSession(); // Limpia todo si falla
+    // Muestra el error específico de "Credenciales inválidas"
+    const errorMsg = err.response?.data?.detail || "Credenciales inválidas o error de red";
+    throw new Error(errorMsg);
   }
-
-  const data = await res.json();
-  setSession({ token: data.access, user: data.user });
-  return data;
 }
 
+// --- me (Corregido el Bug de la URL) ---
 export async function me() {
   try {
-    const { data } = await api.get("/api/auth/me/");
-    setSession({ token: getToken(), user: data });
+    // BUG CORREGIDO:
+    // Antes: api.get("/api/auth/me/") -> http://.../api/api/auth/me/ (MAL)
+    // Ahora: api.get("/auth/me/")     -> http://.../api/auth/me/ (BIEN)
+    const { data } = await api.get("/auth/me/");
+    
+    // Guardamos los datos del usuario en la sesión
+    setSession({ user: data });
     return data;
   } catch (e) {
-    clearSession();
+    clearSession(); // Si 'me' falla (ej. token expirado), deslogueamos
     throw e;
   }
 }

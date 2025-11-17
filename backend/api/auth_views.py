@@ -1,13 +1,15 @@
 # backend/api/auth_views.py
-import datetime
 import hashlib
 import jwt
 from django.conf import settings
 from django.apps import apps
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+
 from .serializers import UsuarioSerializer
 from .security import check_pwd  # si no lo tienes, avísame y te paso uno básico
+from .jwt_utils import create_jwt, decode_jwt  # 🔴 usamos el módulo separado
 
 
 def get_usuario_model():
@@ -15,27 +17,8 @@ def get_usuario_model():
     return apps.get_model('api', 'Usuario')
 
 
-def create_jwt(payload: dict, minutes=60):
-    """Crea un JWT con exp/iat. Fuerza sub a string (PyJWT v2 requiere str)."""
-    exp = datetime.datetime.utcnow() + datetime.timedelta(minutes=minutes)
-    to_encode = {**payload, 'exp': exp, 'iat': datetime.datetime.utcnow()}
-    if 'sub' in to_encode:
-        to_encode['sub'] = str(to_encode['sub'])
-    return jwt.encode(to_encode, settings.SECRET_KEY, algorithm='HS256')
-
-
-def decode_jwt(token: str):
-    """Valida el JWT con leve tolerancia de reloj."""
-    return jwt.decode(
-        token,
-        settings.SECRET_KEY,
-        algorithms=['HS256'],
-        options={"require": ["exp", "iat"]},
-        leeway=10,  # ±10s por si el reloj está levemente desfasado
-    )
-
-
 class LoginView(APIView):
+    # Endpoint público: no requiere autenticación previa
     authentication_classes = []
     permission_classes = []
 
@@ -65,26 +48,14 @@ class LoginView(APIView):
 
 
 class MeView(APIView):
+    # Usamos la autenticación por defecto (UsuarioJWTAuthentication) definida en settings.py
+    permission_classes = [IsAuthenticated]
+
     def get(self, request):
-        Usuario = get_usuario_model()
-        auth = request.headers.get('Authorization', '')
-        if not auth.startswith('Bearer '):
-            return Response({'detail': 'No autorizado'}, status=401)
-
-        token = auth.split(' ', 1)[1]
-        try:
-            payload = decode_jwt(token)
-        except Exception:
-            return Response({'detail': 'Token inválido/expirado'}, status=401)
-
-        # sub viene como string en el token; casteamos a int para la consulta
-        user_id = payload.get('sub')
-        try:
-            user = Usuario.objects.select_related('rol').get(usuario_id=int(user_id))
-        except (Usuario.DoesNotExist, ValueError, TypeError):
-            return Response({'detail': 'Usuario no encontrado'}, status=404)
-
-        return Response(UsuarioSerializer(user).data, status=200)
+        # Gracias al authentication backend, request.user ya es una instancia de Usuario
+        user = request.user
+        data = UsuarioSerializer(user).data
+        return Response(data, status=200)
 
 
 # =========================
@@ -124,7 +95,7 @@ class DiagTokenView(APIView):
         except Exception as e:
             return Response({"stage": "decode_noverify", "error": type(e).__name__, "msg": str(e)}, status=400)
 
-        # validación real con SECRET_KEY del proceso
+        # validación real con SECRET_KEY del proceso (reusamos decode_jwt del módulo)
         try:
             verified = decode_jwt(token)
             return Response({
