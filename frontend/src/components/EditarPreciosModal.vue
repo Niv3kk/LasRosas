@@ -2,7 +2,7 @@
   <div class="modal-overlay">
     <div class="modal-content" @click.stop>
       <h2 class="modal-title">Editar Lista de Precios</h2>
-      
+
       <div class="table-scroll-wrapper">
         <table class="modal-table">
           <thead>
@@ -11,28 +11,40 @@
               <th>Detalle</th>
               <th>Precio Unit.</th>
               <th>Total</th>
-              <th></th> 
+              <th></th>
             </tr>
           </thead>
+
           <tbody>
-            <tr v-for="(item, index) in listaEditable" :key="item.id">
-              <td><input type="number" v-model="item.cantidad" @input="actualizarTotal(item)"></td>
-              <td><input type="text" v-model="item.detalle"></td>
-              <td><input type="number" v-model="item.precioUnitario" @input="actualizarTotal(item)"></td>
+            <tr v-for="(item, index) in listaLocal" :key="index">
+              <td>
+                <input type="number" v-model="item.cantidad" @input="actualizarTotal(index)">
+              </td>
+
+              <td>
+                <input type="text" v-model="item.detalle">
+              </td>
+
+              <td>
+                <input type="number" v-model="item.precioUnitario" @input="actualizarTotal(index)">
+              </td>
+
               <td class="text-right fw-bold">{{ item.total }} Bs.</td>
+
               <td class="text-center">
-                <button class="btn-remove-item" @click="quitarItem(index)">-</button>
+                <button class="btn-remove-item" @click="eliminarItem(index)">-</button>
               </td>
             </tr>
           </tbody>
         </table>
       </div>
-      
-      <button class="btn-add-item" @click="agregarItem">+ Añadir item</button>
 
       <div class="modal-actions">
-        <button class="btn btn-cancel" @click="$emit('cerrar')">Cerrar</button>
-        <button class="btn btn-save" @click="$emit('guardar', listaEditable)">Guardar</button>
+        <button class="btn-cancel" @click="cerrar">Cerrar</button>
+
+        <button class="btn-save" @click="emitGuardar" :disabled="guardando">
+          {{ guardando ? "Guardando..." : "Guardar" }}
+        </button>
       </div>
     </div>
   </div>
@@ -42,42 +54,47 @@
 import { ref, watch } from 'vue';
 
 const props = defineProps({
-  lista: {
-    type: Array,
-    required: true
-  }
+  lista: Array,
+  guardando: Boolean
 });
 
 const emit = defineEmits(['cerrar', 'guardar']);
 
-const listaEditable = ref([]);
+const listaLocal = ref([]);
 
-watch(() => props.lista, (nuevaLista) => {
-  listaEditable.value = JSON.parse(JSON.stringify(nuevaLista));
-}, { immediate: true, deep: true });
+watch(
+  () => props.lista,
+  (n) => {
+    listaLocal.value = JSON.parse(JSON.stringify(n));
+  },
+  { immediate: true }
+);
 
-const actualizarTotal = (item) => {
-  const cantidad = Number(item.cantidad) || 0;
-  const precio = Number(item.precioUnitario) || 0;
-  item.total = cantidad * precio;
+const cerrar = () => emit('cerrar');
+const emitGuardar = () => emit('guardar', listaLocal.value);
+
+const eliminarItem = (i) => {
+  listaLocal.value.splice(i, 1);
 };
 
-// 5. Función para añadir una nueva fila
 const agregarItem = () => {
-  listaEditable.value.push({
-    id: `new_${Date.now()}`, // ID temporal único
+  listaLocal.value.push({
+    id: null,
     cantidad: 1,
     detalle: '',
     precioUnitario: 0,
-    total: 0
+    total: 0,
+    inventario_id: null,
+    nombre_tarifa: '',
   });
 };
 
-// 6. Función para quitar una fila
-const quitarItem = (index) => {
-  listaEditable.value.splice(index, 1);
+const actualizarTotal = (index) => {
+  const item = listaLocal.value[index];
+  item.total = Number(item.cantidad) * Number(item.precioUnitario);
 };
 </script>
+
 
 <style scoped>
 /* (Tus estilos existentes se mantienen) */
@@ -105,6 +122,27 @@ const quitarItem = (index) => {
 .text-center { text-align: center; }
 
 /* ===== NUEVOS ESTILOS AÑADIDOS ===== */
+.btn-save {
+  background-color: #00BCD4;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  cursor: pointer;
+  font-weight: 600;
+  transition: opacity 0.2s;
+}
+
+.btn-save:hover {
+  opacity: 0.85;
+}
+
+.btn-save:active,
+.btn-save:focus {
+  background-color: #00BCD4 !important;
+  border-color: #00BCD4 !important;
+  box-shadow: none !important;
+}
 
 /* Botón "Cerrar" / "Cancelar" */
 .btn-cancel {
@@ -117,14 +155,7 @@ const quitarItem = (index) => {
   font-weight: 600;
 }
 
-/* Botón "Añadir item" */
-.btn-add-item {
-  background: #eef1f3; color: #333; border: 1px solid #ddd;
-  border-radius: 6px; padding: 0.5rem 1rem; cursor: pointer;
-  margin-top: 1rem; align-self: flex-start; font-weight: 600;
-  transition: background-color 0.2s;
-}
-.btn-add-item:hover { background-color: #e4e8eb; }
+ 
 
 /* Botón "-" para eliminar fila */
 .btn-remove-item {

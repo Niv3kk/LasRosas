@@ -210,21 +210,25 @@ class Inventario(models.Model):
         db_table = 'inventario'
 
 
+# models.py
+
 class Listapreciosalquiler(models.Model):
     precio_alquiler_id = models.AutoField(primary_key=True)
-    inventario = models.ForeignKey(Inventario, models.DO_NOTHING)
+    inventario = models.ForeignKey('Inventario', models.DO_NOTHING,
+                                   db_column='inventario_id', related_name='precios_alquiler')
     nombre_tarifa = models.TextField()
     unidades_incluidas = models.IntegerField()
     precio_tarifa = models.DecimalField(max_digits=10, decimal_places=2)
 
     class Meta:
-        managed = False
+        managed = False  # la tabla ya existe en Supabase
         db_table = 'listapreciosalquiler'
 
 
 class Listapreciosdanos(models.Model):
     precio_dano_id = models.AutoField(primary_key=True)
-    inventario = models.ForeignKey(Inventario, models.DO_NOTHING)
+    inventario = models.ForeignKey('Inventario', models.DO_NOTHING,
+                                   db_column='inventario_id', related_name='precios_danos')
     nombre_tarifa = models.TextField()
     unidades_incluidas = models.IntegerField()
     precio_tarifa = models.DecimalField(max_digits=10, decimal_places=2)
@@ -232,8 +236,7 @@ class Listapreciosdanos(models.Model):
     class Meta:
         managed = False
         db_table = 'listapreciosdanos'
-
-
+        
 class Roles(models.Model):
     rol_id = models.AutoField(primary_key=True)
     nombre_rol = models.TextField(unique=True)

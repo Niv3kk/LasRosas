@@ -1,5 +1,6 @@
 # backend/api/serializers.py
 from rest_framework import serializers
+from .models import Listapreciosalquiler, Listapreciosdanos
 from .models import (
     Historialinventario,
     Inventario,
@@ -115,3 +116,38 @@ class HistorialInventarioSerializer(serializers.ModelSerializer):
             or getattr(u, 'nombre_usuario', None)
             or str(u)
         )
+
+class ListaPreciosAlquilerSerializer(serializers.ModelSerializer):
+    nombre_articulo = serializers.CharField(source='inventario.nombre_articulo', read_only=True)
+    detalle_articulo = serializers.CharField(source='inventario.detalle', read_only=True)
+
+    class Meta:
+        model = Listapreciosalquiler
+        fields = [
+            'precio_alquiler_id',
+            'inventario_id',
+            'nombre_articulo',
+            'detalle_articulo',
+            'nombre_tarifa',
+            'unidades_incluidas',
+            'precio_tarifa',
+        ]
+
+
+class ListaPreciosDanosSerializer(serializers.ModelSerializer):
+    nombre_articulo = serializers.CharField(source='inventario.nombre_articulo', read_only=True)
+    detalle_articulo = serializers.CharField(source='inventario.detalle', read_only=True)
+
+    class Meta:
+        model = Listapreciosdanos
+        fields = [
+            'precio_dano_id',
+            'inventario_id',
+            'nombre_articulo',
+            'detalle_articulo',
+            'nombre_tarifa',
+            'unidades_incluidas',
+            'precio_tarifa',
+        ]
+
+

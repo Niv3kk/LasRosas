@@ -1,7 +1,13 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import health
 from . import views
+from .views import (
+    health,
+    InventarioViewSet,
+    HistorialinventarioViewSet,
+    ListaPreciosAlquilerView,
+    ListaPreciosDanosView,
+)
 
 # Importa tus vistas de auth personalizadas
 from .auth_views import MeView, LoginView  
@@ -23,4 +29,9 @@ urlpatterns = [
     # (Opcional) Endpoints de diagnóstico si los quieres exponer un rato:
     # path('auth/diag-key/', DiagKeyView.as_view(), name='diag-key'),
     # path('auth/diag-token/', DiagTokenView.as_view(), name='diag-token'),
+
+    path('lista-precios/alquiler/', ListaPreciosAlquilerView.as_view(),
+         name='lista-precios-alquiler'),
+    path('lista-precios/danos/', ListaPreciosDanosView.as_view(),
+         name='lista-precios-danos'),
 ]
