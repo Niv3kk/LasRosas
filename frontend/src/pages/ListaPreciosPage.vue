@@ -17,15 +17,16 @@
         </h2>
       </div>
 
-      <!-- Mensajes -->
-      <div v-if="mensajeExito" class="alert alert-success">
-        {{ mensajeExito }}
-      </div>
-      <div v-if="mensajeError" class="alert alert-error">
-        {{ mensajeError }}
+      <!-- 🔄 Loader dentro de la tarjeta blanca -->
+      <div v-if="loading" class="loader-wrapper">
+        <div class="spinner-border" role="status">
+          <span class="visually-hidden">Cargando...</span>
+        </div>
+        <p class="mt-2">Cargando lista de precios...</p>
       </div>
 
-      <div class="table-scroll-wrapper">
+      <!-- 📋 Tabla solo cuando ya cargó -->
+      <div v-else class="table-scroll-wrapper">
         <table class="prices-table">
           <thead>
             <tr>
@@ -35,7 +36,6 @@
               <th>Total</th>
             </tr>
           </thead>
-
           <tbody>
             <tr v-for="item in datosTablaActiva" :key="item.id">
               <td class="text-right">{{ item.cantidad }}</td>
@@ -47,14 +47,28 @@
         </table>
       </div>
 
-      <div class="actions-container" v-if="usuarioActual?.rol?.nombre_rol === 'Administrador'">
+      <div
+        class="actions-container"
+        v-if="usuarioActual?.rol?.nombre_rol === 'Administrador'"
+      >
         <button class="btn btn-edit" @click="abrirModal">
           <span>Editar</span>
           <img src="@/assets/Edit.png" alt="editar">
         </button>
       </div>
+
+      <!-- Toast centrado en la parte baja de la tarjeta -->
+      <transition name="fade">
+        <div
+          v-if="toastVisible"
+          class="toast-notification"
+          :class="toastType === 'success' ? 'toast-success' : 'toast-error'"
+        >
+          {{ toastMessage }}
+        </div>
+      </transition>
     </div>
-    
+
     <EditarPreciosModal
       v-if="modalVisible"
       :lista="datosTablaActiva"
@@ -81,21 +95,42 @@ import {
 const modalVisible = ref(false);
 const vistaActiva = ref('precios');
 const guardando = ref(false);
-const mensajeExito = ref('');
-const mensajeError = ref('');
+const loading = ref(true);
 
 /* Listas principales */
 const listaPrecios = ref([]);
 const listaPreciosDanos = ref([]);
 
+/* Toast */
+const toastVisible = ref(false);
+const toastMessage = ref('');
+const toastType = ref('success');
+let toastTimeoutId = null;
+
+const mostrarToast = (message, type = 'success') => {
+  toastMessage.value = message;
+  toastType.value = type;
+  toastVisible.value = true;
+
+  if (toastTimeoutId) {
+    clearTimeout(toastTimeoutId);
+  }
+
+  toastTimeoutId = setTimeout(() => {
+    toastVisible.value = false;
+  }, 3000);
+};
+
 /* Cargar datos desde API */
 const cargarDatos = async () => {
+  loading.value = true;
   try {
     const [alq, dan] = await Promise.all([
       fetchListaPreciosAlquiler(),
       fetchListaPreciosDanos(),
     ]);
 
+    // Lista de precios de ALQUILER
     listaPrecios.value = alq.data.map(i => ({
       id: i.precio_alquiler_id,
       cantidad: i.unidades_incluidas,
@@ -106,19 +141,25 @@ const cargarDatos = async () => {
       nombre_tarifa: i.nombre_tarifa,
     }));
 
-    listaPreciosDanos.value = dan.data.map(i => ({
-      id: i.precio_dano_id,
-      cantidad: i.unidades_incluidas,
-      detalle: i.nombre_tarifa || i.nombre_articulo,
-      precioUnitario: Number(i.precio_tarifa),
-      total: Number(i.unidades_incluidas) * Number(i.precio_tarifa),
-      inventario_id: i.inventario_id,
-      nombre_tarifa: i.nombre_tarifa,
-    }));
+    // Lista de precios de DAÑOS
+    listaPreciosDanos.value = dan.data.map(i => {
+      const unidades = i.unidades_incluidas ?? 1;
+      return {
+        id: i.precio_dano_id,
+        cantidad: unidades,
+        detalle: i.nombre_articulo || i.nombre_tarifa,
+        precioUnitario: Number(i.precio_tarifa),
+        total: unidades * Number(i.precio_tarifa),
+        inventario_id: i.inventario_id,
+        nombre_tarifa: i.nombre_tarifa,
+      };
+    });
 
   } catch (err) {
     console.error(err);
+    mostrarToast('Error al cargar las listas de precios.', 'error');
   }
+  loading.value = false;
 };
 
 onMounted(cargarDatos);
@@ -137,8 +178,6 @@ const cerrarModal = () => { modalVisible.value = false; };
 /* Guardar cambios */
 const guardarCambios = async (listaEditada) => {
   guardando.value = true;
-  mensajeError.value = '';
-  mensajeExito.value = '';
 
   try {
     if (vistaActiva.value === 'precios') {
@@ -152,25 +191,31 @@ const guardarCambios = async (listaEditada) => {
       await saveListaPreciosAlquiler(payload);
       listaPrecios.value = listaEditada;
 
+      mostrarToast('Precios de alquiler guardados correctamente.');
+
     } else {
       const payload = listaEditada.map(i => ({
         precio_dano_id: i.id,
         inventario_id: i.inventario_id,
-        nombre_tarifa: i.nombre_tarifa || i.detalle,
+        nombre_tarifa: i.nombre_tarifa || 'Daño o pérdida',
         unidades_incluidas: i.cantidad,
         precio_tarifa: i.precioUnitario,
       }));
       await saveListaPreciosDanos(payload);
       listaPreciosDanos.value = listaEditada;
+
+      mostrarToast('Precios de daños guardados correctamente.');
     }
 
     cerrarModal();
-    mensajeExito.value = 'Cambios guardados correctamente.';
-    setTimeout(() => mensajeExito.value = '', 3000);
 
   } catch (err) {
     console.error(err);
-    mensajeError.value = 'Error al guardar los cambios.';
+    if (vistaActiva.value === 'precios') {
+      mostrarToast('Error al guardar precios de alquiler.', 'error');
+    } else {
+      mostrarToast('Error al guardar precios de daños.', 'error');
+    }
   }
 
   guardando.value = false;
@@ -178,7 +223,6 @@ const guardarCambios = async (listaEditada) => {
 </script>
 
 <style scoped>
-/* Estilo General del Contenedor de la Página */
 .precios-container {
   padding: 2rem;
   background-color: #f0f2f5;
@@ -187,7 +231,6 @@ const guardarCambios = async (listaEditada) => {
   display: flex;
 }
 
-/* Contenedor blanco para la tabla */
 .table-container {
   background: white;
   border-radius: 12px;
@@ -197,19 +240,30 @@ const guardarCambios = async (listaEditada) => {
   flex-grow: 1;
   overflow: hidden;
   padding: 1.5rem 2rem;
+  position: relative;
 }
 
-/* Contenedor de los títulos/pestañas */
+/* loader centrado dentro de la tarjeta */
+.loader-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 0;
+}
+
 .titles-wrapper {
   display: flex;
   justify-content: center;
   gap: 15rem;
   margin-bottom: 2rem;
 }
+
 .table-scroll-wrapper {
   flex-grow: 1;
   overflow-y: auto;
 }
+
 .section-title {
   font-size: 2.1rem;
   font-weight: 500;
@@ -226,7 +280,7 @@ const guardarCambios = async (listaEditada) => {
   border-bottom-color: #c9434d;
 }
 
-/* Tabla de Precios */
+/* Tabla */
 .prices-table {
   width: 100%;
   border-collapse: collapse;
@@ -261,7 +315,6 @@ const guardarCambios = async (listaEditada) => {
   border-bottom: none;
 }
 
-/* Clases de utilidad para texto */
 .text-right {
   text-align: right;
 }
@@ -269,13 +322,12 @@ const guardarCambios = async (listaEditada) => {
   font-weight: 700;
 }
 
-/* Contenedor del botón Editar */
+/* Botón editar */
 .actions-container {
   display: flex;
   justify-content: flex-end;
 }
 
-/* Botón de Editar */
 .btn {
   border: none;
   border-radius: 8px;
@@ -307,30 +359,7 @@ const guardarCambios = async (listaEditada) => {
   box-shadow: none !important;
 }
 
-/* --- ESTILOS RESPONSIVOS (tarjetitas en móvil) --- */
-/* ... todo lo que ya tienes ... */
-
-/* Mensajes de feedback */
-.alert {
-  margin-bottom: 1rem;
-  padding: 0.75rem 1rem;
-  border-radius: 8px;
-  font-size: 0.9rem;
-}
-
-.alert-success {
-  background-color: #e6ffed;
-  color: #137333;
-  border: 1px solid #b7e4c7;
-}
-
-.alert-error {
-  background-color: #ffe6e6;
-  color: #b00020;
-  border: 1px solid #f5b5b5;
-}
-
-/* --- ESTILOS RESPONSIVOS (tarjetitas en móvil) --- */
+/* Responsive */
 @media (max-width: 768px) {
   .prices-table {
     border: 0;
@@ -374,4 +403,30 @@ const guardarCambios = async (listaEditada) => {
   }
 }
 
+/* Toast */
+.toast-notification {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.9rem 1.4rem;
+  border-radius: 10px;
+  color: white;
+  font-weight: 600;
+  background-color: #4caf50;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  z-index: 50;
+}
+.toast-success { background-color: #4caf50; }
+.toast-error { background-color: #f44336; }
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+  transform: translateY(10px);
+}
 </style>

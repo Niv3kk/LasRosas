@@ -25,6 +25,16 @@
     <div v-if="error" class="alert alert-danger mx-3">
       <strong>Error:</strong> {{ error }}
     </div>
+<!-- Toast de notificación -->
+    <transition name="fade">
+      <div
+        v-if="toastVisible"
+        class="toast-notification"
+        :class="toastType === 'success' ? 'toast-success' : 'toast-error'"
+      >
+        {{ toastMessage }}
+      </div>
+    </transition>
 
     <div class="table-container" v-if="!loading && !error">
       <div class="table-scroll-wrapper">
@@ -102,14 +112,37 @@ const cerrarModalNuevo = () => {
 };
 
 const onMaterialCreado = (nuevoItem) => {
-  // Lo agregamos a la lista actual
+  // Lo agregamos al inicio de la lista
   inventario.value.unshift(nuevoItem);
   modalNuevoVisible.value = false;
+  // Mostramos el toast
+  mostrarToast('Material creado correctamente.');
 };
+
 
 onMounted(() => {
   cargarInventario();
 });
+
+const toastVisible = ref(false);
+const toastMessage = ref('');
+const toastType = ref('success'); // 'success' | 'error'
+let toastTimeoutId = null;
+
+const mostrarToast = (message, type = 'success') => {
+  toastMessage.value = message;
+  toastType.value = type;
+  toastVisible.value = true;
+
+  if (toastTimeoutId) {
+    clearTimeout(toastTimeoutId);
+  }
+
+  toastTimeoutId = setTimeout(() => {
+    toastVisible.value = false;
+  }, 3000); // 3 segundos
+};
+
 </script>
 
 
@@ -123,29 +156,33 @@ onMounted(() => {
 }
 
 .header-row {
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
+  position: relative;
+  margin-bottom: 1.5rem;
 }
 .btn-add {
-  background:#00BCD4;
-  border:none;
-  border-radius:8px;
-  padding:0.5rem 1.2rem;
-  color:white;
-  font-weight:600;
-  cursor:pointer;
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #00bcd4;
+  border: none;
+  border-radius: 8px;
+  padding: 0.5rem 1.2rem;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
 }
+
 .btn-add:hover {
   opacity:0.9;
 }
 
 .main-title {
+  width: 100%;
   text-align: center;
-  color: #000000;
-  margin-bottom: 2rem;
-  /* Hacemos que el título no se encoja */
-  flex-shrink: 0;
+  font-size: 2.4rem;
+  font-weight: 700;
+  margin: 0;
 }
 
 /* El contenedor blanco de la tabla */
@@ -292,4 +329,42 @@ onMounted(() => {
     font-weight: bold;
   }
 }
+
+.toast-notification {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%); /* centrar horizontalmente */
+  padding: 0.9rem 1.2rem;
+  border-radius: 10px;
+  color: white;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  z-index: 2000;
+  max-width: 90%;
+  text-align: center;
+}
+
+
+/* Colores para tipos de toast */
+.toast-success {
+  background-color: #4caf50; /* verde */
+}
+
+.toast-error {
+  background-color: #f44336; /* rojo */
+}
+
+/* Animación pequeña de aparición/desaparición */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
 </style>
