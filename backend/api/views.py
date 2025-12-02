@@ -2,7 +2,7 @@ from django.http import JsonResponse
 from django.db import connection
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import viewsets # <--- Importación clave
+from rest_framework import viewsets, status # <--- Importación clave
 from .models import Inventario, Historialinventario
 from .serializers import InventarioSerializer, HistorialInventarioSerializer
 from django.db.models import Sum, Case, When, F, IntegerField
@@ -27,17 +27,18 @@ def health(request):
         return JsonResponse({"ok": False, "error": str(e)}, status=500)
 
 
-class InventarioViewSet(viewsets.ReadOnlyModelViewSet):
+# backend/api/views.py
+
+class InventarioViewSet(viewsets.ModelViewSet):
     """
-    API endpoint que muestra todo el inventario CON su stock actual calculado.
-    (Este se queda como ReadOnly)
+    API endpoint que muestra y permite crear inventario
+    con su stock actual calculado.
     """
     serializer_class = InventarioSerializer
-    permission_classes = [IsAuthenticated] # <--- Añadir permisos
-    queryset = Inventario.objects.all() # Necesario para el serializer de abajo
+    permission_classes = [IsAuthenticated]
+    http_method_names = ['get', 'post', 'head', 'options']  # evita delete/put si quieres
 
     def get_queryset(self):
-        # ... (Tu lógica de cálculo de stock se queda igual) ...
         stock_calculado = Sum(
             Case(
                 When(historialinventario__tipo_movimiento='Entrada', then=F('historialinventario__cantidad')),
@@ -49,8 +50,54 @@ class InventarioViewSet(viewsets.ReadOnlyModelViewSet):
         queryset = Inventario.objects.annotate(
             stock_actual=Coalesce(stock_calculado, 0)
         ).order_by('nombre_articulo')
-        
+
         return queryset
+
+    def create(self, request, *args, **kwargs):
+        # Solo necesitamos nombre_articulo y detalle
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        # Crear el item en inventario
+        inventario = serializer.save()
+
+        # Crear tarifas por defecto en ALQUILER
+        Listapreciosalquiler.objects.create(
+            inventario=inventario,
+            nombre_tarifa="Precio por Unidad",
+            unidades_incluidas=1,
+            precio_tarifa=0,
+        )
+
+        # Crear tarifas por defecto en DAÑOS / PÉRDIDAS
+        Listapreciosdanos.objects.create(
+            inventario=inventario,
+            nombre_tarifa="Daño o pérdida",
+            unidades_incluidas=1,
+            precio_tarifa=0,
+        )
+
+        # Volvemos a cargar el item con el stock_actual calculado
+        from django.db.models import Sum, Case, When, F, IntegerField
+        from django.db.models.functions import Coalesce
+
+        stock_calculado = Sum(
+            Case(
+                When(historialinventario__tipo_movimiento='Entrada', then=F('historialinventario__cantidad')),
+                When(historialinventario__tipo_movimiento='Salida', then=F('historialinventario__cantidad') * -1),
+                default=0,
+                output_field=IntegerField()
+            )
+        )
+        inventario_refresco = (
+            Inventario.objects
+            .annotate(stock_actual=Coalesce(stock_calculado, 0))
+            .get(pk=inventario.pk)
+        )
+
+        output = self.get_serializer(inventario_refresco)
+        return Response(output.data, status=status.HTTP_201_CREATED)
+
 
 # --- CAMBIO IMPORTANTE AQUÍ ---
 # 1. Cambiamos ReadOnlyModelViewSet por ModelViewSet

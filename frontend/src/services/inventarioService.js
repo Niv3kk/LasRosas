@@ -33,3 +33,7 @@ export const createHistorialMovimiento = (data) => {
   // El serializador del backend espera 'inventario' (el ID), no 'inventario_id'
   return api.post('/historial-inventario/', data);
 };
+
+export const createInventarioItem = (data) => {
+  return api.post('/inventario/', data);
+};

@@ -1,6 +1,17 @@
 <template>
   <main class="inventario-container">
-    <h1 class="main-title">Inventario</h1>
+    <div class="header-row">
+      <h1 class="main-title">Inventario</h1>
+
+      <!-- Botón solo para Administrador -->
+      <button
+        v-if="esAdmin"
+        class="btn btn-add"
+        @click="abrirModalNuevo"
+      >
+        + Añadir material
+      </button>
+    </div>
 
     <!-- UI de Carga -->
     <div v-if="loading" class="text-center" style="padding: 5rem">
@@ -26,17 +37,13 @@
             </tr>
           </thead>
           <tbody>
-            <tr
-              v-for="item in inventario"
-              :key="item.id"
-            >
+            <tr v-for="item in inventario" :key="item.id">
               <td data-label="Stock Actual" class="text-right fw-bold">
                 {{ item.stock_actual }}
               </td>
               <td data-label="Artículo">{{ item.nombre_articulo }}</td>
               <td data-label="Detalle">{{ item.detalle }}</td>
             </tr>
-
             <tr v-if="inventario.length === 0">
               <td colspan="3" class="text-center">
                 No se encontraron artículos en el inventario.
@@ -46,16 +53,31 @@
         </table>
       </div>
     </div>
+
+    <!-- Modal para crear nuevo material -->
+    <AgregarInventarioModal
+      v-if="modalNuevoVisible"
+      @cerrar="cerrarModalNuevo"
+      @guardado="onMaterialCreado"
+    />
   </main>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { getInventario } from '@/services/inventarioService.js';
+import { usuarioActual } from '@/services/auth.js';
+import AgregarInventarioModal from '@/components/AgregarInventarioModal.vue';
 
 const inventario = ref([]);
 const loading = ref(true);
 const error = ref(null);
+
+const modalNuevoVisible = ref(false);
+
+const esAdmin = computed(
+  () => usuarioActual.value?.rol?.nombre_rol === 'Administrador'
+);
 
 const cargarInventario = async () => {
   try {
@@ -71,6 +93,20 @@ const cargarInventario = async () => {
   }
 };
 
+const abrirModalNuevo = () => {
+  modalNuevoVisible.value = true;
+};
+
+const cerrarModalNuevo = () => {
+  modalNuevoVisible.value = false;
+};
+
+const onMaterialCreado = (nuevoItem) => {
+  // Lo agregamos a la lista actual
+  inventario.value.unshift(nuevoItem);
+  modalNuevoVisible.value = false;
+};
+
 onMounted(() => {
   cargarInventario();
 });
@@ -84,6 +120,24 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   height: 100%; 
+}
+
+.header-row {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+.btn-add {
+  background:#00BCD4;
+  border:none;
+  border-radius:8px;
+  padding:0.5rem 1.2rem;
+  color:white;
+  font-weight:600;
+  cursor:pointer;
+}
+.btn-add:hover {
+  opacity:0.9;
 }
 
 .main-title {
