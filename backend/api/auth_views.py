@@ -8,8 +8,8 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
 from .serializers import UsuarioSerializer
-from .security import check_pwd  # si no lo tienes, avísame y te paso uno básico
-from .jwt_utils import create_jwt, decode_jwt  # 🔴 usamos el módulo separado
+from .security import check_pwd 
+from .jwt_utils import create_jwt, decode_jwt  
 
 
 def get_usuario_model():
@@ -39,7 +39,7 @@ class LoginView(APIView):
 
         user_data = UsuarioSerializer(user).data
         access = create_jwt({
-            'sub': user.usuario_id,          # puede venir int; adentro se fuerza a str
+            'sub': user.usuario_id,          
             'username': user.nombre_usuario,
             'role': user.rol.nombre_rol,
         }, minutes=60)

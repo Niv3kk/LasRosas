@@ -44,22 +44,44 @@
               <th class="text-right">Stock Actual</th>
               <th>Artículo</th>
               <th>Detalle</th>
+              <th>Acciones</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="item in inventario" :key="item.id">
+            <tr
+              v-for="item in inventario"
+              :key="item.id"
+            >
               <td data-label="Stock Actual" class="text-right fw-bold">
                 {{ item.stock_actual }}
               </td>
               <td data-label="Artículo">{{ item.nombre_articulo }}</td>
               <td data-label="Detalle">{{ item.detalle }}</td>
+              <td data-label="Acciones">
+                <div class="acciones-wrapper">
+                  <button
+                    class="btn-accion btn-accion-editar"
+                    @click="abrirModalEditar(item)"
+                  >
+                    Editar
+                  </button>
+                  <button
+                    class="btn-accion btn-accion-borrar"
+                    @click="borrarItem(item)"
+                  >
+                    Borrar
+                  </button>
+                </div>
+              </td>
             </tr>
+
             <tr v-if="inventario.length === 0">
-              <td colspan="3" class="text-center">
+              <td colspan="4" class="text-center">
                 No se encontraron artículos en el inventario.
               </td>
             </tr>
           </tbody>
+
         </table>
       </div>
     </div>
@@ -71,11 +93,65 @@
       @guardado="onMaterialCreado"
     />
   </main>
+  <!-- Modal editar inventario -->
+  <div
+    v-if="modalEditarVisible"
+    class="modal-backdrop"
+  >
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Editar artículo</h3>
+        <button type="button" class="btn-close" @click="cerrarModalEditar">
+          &times;
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Nombre del artículo</label>
+          <input
+            type="text"
+            class="form-control"
+            v-model="editForm.nombre_articulo"
+          >
+        </div>
+
+        <div class="form-group">
+          <label>Detalle</label>
+          <textarea
+            class="form-control"
+            rows="3"
+            v-model="editForm.detalle"
+          ></textarea>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button
+          class="btn btn-secondary"
+          type="button"
+          @click="cerrarModalEditar"
+          :disabled="saving"
+        >
+          Cancelar
+        </button>
+        <button
+          class="btn btn-primary"
+          type="button"
+          @click="guardarEdicion"
+          :disabled="saving"
+        >
+          {{ saving ? 'Guardando...' : 'Guardar cambios' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
 </template>
 
 <script setup>
 import { ref, onMounted, computed } from 'vue';
-import { getInventario } from '@/services/inventarioService.js';
+import { getInventario, updateInventarioItem, deleteInventarioItem } from '@/services/inventarioService.js';
 import { usuarioActual } from '@/services/auth.js';
 import AgregarInventarioModal from '@/components/AgregarInventarioModal.vue';
 
@@ -143,6 +219,70 @@ const mostrarToast = (message, type = 'success') => {
   }, 3000); // 3 segundos
 };
 
+const modalEditarVisible = ref(false);
+const editForm = ref({
+  id: null,
+  nombre_articulo: '',
+  detalle: '',
+});
+const saving = ref(false);
+
+const abrirModalEditar = (item) => {
+  editForm.value = {
+    id: item.id,
+    nombre_articulo: item.nombre_articulo,
+    detalle: item.detalle || '',
+  };
+  modalEditarVisible.value = true;
+};
+
+const cerrarModalEditar = () => {
+  modalEditarVisible.value = false;
+};
+
+const guardarEdicion = async () => {
+  if (!editForm.value.nombre_articulo.trim()) {
+    mostrarToast('El nombre del artículo no puede estar vacío.', 'error');
+    return;
+  }
+
+  saving.value = true;
+  try {
+    await updateInventarioItem(editForm.value.id, {
+      nombre_articulo: editForm.value.nombre_articulo.trim(),
+      detalle: editForm.value.detalle.trim(),
+    });
+
+    await cargarInventario();
+    modalEditarVisible.value = false;
+    mostrarToast('Artículo actualizado correctamente.', 'success');
+  } catch (err) {
+    console.error(err);
+    mostrarToast('Error al actualizar el artículo.', 'error');
+  } finally {
+    saving.value = false;
+  }
+};
+
+
+const borrarItem = async (item) => {
+  if (!confirm(`¿Seguro que quieres borrar "${item.nombre_articulo}"?`)) {
+    return;
+  }
+
+  try {
+    await deleteInventarioItem(item.id);
+    await cargarInventario();
+    mostrarToast('Artículo eliminado correctamente.', 'success');
+  } catch (err) {
+    console.error(err);
+    const detail = err.response?.data?.detail;
+    mostrarToast(detail || 'No se pudo eliminar el artículo.', 'error');
+  }
+};
+
+
+
 </script>
 
 
@@ -164,7 +304,7 @@ const mostrarToast = (message, type = 'success') => {
   right: 0;
   top: 50%;
   transform: translateY(-50%);
-  background: #00bcd4;
+  background: #1B4F86;
   border: none;
   border-radius: 8px;
   padding: 0.5rem 1.2rem;
@@ -365,6 +505,100 @@ const mostrarToast = (message, type = 'success') => {
 .fade-leave-to {
   opacity: 0;
   transform: translateY(10px);
+}
+
+.acciones-wrapper {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+}
+
+.btn-accion {
+  border: none;
+  border-radius: 6px;
+  padding: 0.3rem 0.7rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: #fff;
+}
+
+.btn-accion-editar {
+  background-color: #00BCD4;
+}
+
+.btn-accion-borrar {
+  background-color: #E53935;
+}
+
+/* Reusa estilo de modal como en otros componentes */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1050;
+}
+
+.modal-content {
+  background: #fff;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+  overflow: hidden;
+}
+
+.modal-header,
+.modal-footer {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modal-footer {
+  border-top: 1px solid #eee;
+  border-bottom: none;
+}
+
+.modal-body {
+  padding: 1rem 1.5rem;
+}
+
+.modal-title {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.btn-close {
+  border: none;
+  background: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  font-weight: 600;
+  margin-bottom: 0.4rem;
+  display: block;
+}
+
+.form-control {
+  width: 100%;
+  padding: 0.6rem;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  box-sizing: border-box;
 }
 
 </style>

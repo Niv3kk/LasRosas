@@ -13,6 +13,7 @@ from .serializers import (
     ListaPreciosAlquilerSerializer,
     ListaPreciosDanosSerializer,
 )
+from django.db import transaction
 
 def health(request):
     """
@@ -27,76 +28,56 @@ def health(request):
         return JsonResponse({"ok": False, "error": str(e)}, status=500)
 
 
-# backend/api/views.py
-
 class InventarioViewSet(viewsets.ModelViewSet):
     """
-    API endpoint que muestra y permite crear inventario
-    con su stock actual calculado.
+    API endpoint que muestra todo el inventario CON su stock actual calculado
+    y permite crear / editar / borrar artículos.
     """
     serializer_class = InventarioSerializer
     permission_classes = [IsAuthenticated]
-    http_method_names = ['get', 'post', 'head', 'options']  # evita delete/put si quieres
+    queryset = Inventario.objects.all()
 
     def get_queryset(self):
         stock_calculado = Sum(
             Case(
-                When(historialinventario__tipo_movimiento='Entrada', then=F('historialinventario__cantidad')),
-                When(historialinventario__tipo_movimiento='Salida', then=F('historialinventario__cantidad') * -1),
+                When(
+                    historialinventario__tipo_movimiento='Entrada',
+                    then=F('historialinventario__cantidad'),
+                ),
+                When(
+                    historialinventario__tipo_movimiento='Salida',
+                    then=F('historialinventario__cantidad') * -1,
+                ),
                 default=0,
-                output_field=IntegerField()
+                output_field=IntegerField(),
             )
         )
-        queryset = Inventario.objects.annotate(
-            stock_actual=Coalesce(stock_calculado, 0)
-        ).order_by('nombre_articulo')
-
-        return queryset
-
-    def create(self, request, *args, **kwargs):
-        # Solo necesitamos nombre_articulo y detalle
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-
-        # Crear el item en inventario
-        inventario = serializer.save()
-
-        # Crear tarifas por defecto en ALQUILER
-        Listapreciosalquiler.objects.create(
-            inventario=inventario,
-            nombre_tarifa="Precio por Unidad",
-            unidades_incluidas=1,
-            precio_tarifa=0,
-        )
-
-        # Crear tarifas por defecto en DAÑOS / PÉRDIDAS
-        Listapreciosdanos.objects.create(
-            inventario=inventario,
-            nombre_tarifa="Daño o pérdida",
-            unidades_incluidas=1,
-            precio_tarifa=0,
-        )
-
-        # Volvemos a cargar el item con el stock_actual calculado
-        from django.db.models import Sum, Case, When, F, IntegerField
-        from django.db.models.functions import Coalesce
-
-        stock_calculado = Sum(
-            Case(
-                When(historialinventario__tipo_movimiento='Entrada', then=F('historialinventario__cantidad')),
-                When(historialinventario__tipo_movimiento='Salida', then=F('historialinventario__cantidad') * -1),
-                default=0,
-                output_field=IntegerField()
-            )
-        )
-        inventario_refresco = (
+        queryset = (
             Inventario.objects
             .annotate(stock_actual=Coalesce(stock_calculado, 0))
-            .get(pk=inventario.pk)
+            .order_by('nombre_articulo')
         )
+        return queryset
 
-        output = self.get_serializer(inventario_refresco)
-        return Response(output.data, status=status.HTTP_201_CREATED)
+    @transaction.atomic
+    def destroy(self, request, *args, **kwargs):
+        """
+        BORRADO TOTAL (opción A):
+        - Borra historial de movimientos
+        - Borra lista de precios de alquiler
+        - Borra lista de precios de daños
+        - Borra el artículo de inventario
+        """
+        instance = self.get_object()
+
+        # Primero borramos todo lo que depende de este inventario
+        Historialinventario.objects.filter(inventario=instance).delete()
+        Listapreciosalquiler.objects.filter(inventario=instance).delete()
+        Listapreciosdanos.objects.filter(inventario=instance).delete()
+
+        # Finalmente borramos el inventario
+        return super().destroy(request, *args, **kwargs)
+
 
 
 # --- CAMBIO IMPORTANTE AQUÍ ---
